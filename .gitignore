@@ -1,9 +1,11 @@
+# Dependencies
+node_modules/
+lib/
+
+# Foundry compile files
 cache/
 out/
-broadcast/
-docs/
-.env*
+build/
 
-tools/playground.sh
-scripts/Playground.s.sol
-scripts/data.json
+# Environnement variables
+.env*

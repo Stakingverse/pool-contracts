@@ -1,0 +1,40 @@
+{
+  "name": "StakingVerse pool contracts",
+  "description": "Contracts for the Vault and the Liquid Staking token to enable liquid staking after staking into StakingVerse's vault.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Stakingverse/pool-contracts/tree/main"
+  },
+  "bugs": {
+    "url": "https://github.com/Stakingverse/pool-contracts/issues"
+  },
+  "homepage": "https://github.com/Stakingverse/pool-contracts",
+  "keywords": [
+    "Defi",
+    "LUKSO",
+    "Ethereum",
+    "Staking",
+    "Liquid Staking"
+  ],
+  "scripts": {
+    "build": "forge build",
+    "build:sizes": "forge build --sizes",
+    "test": "forge test",
+    "test:debug": "forge test -vvv",
+    "test:invariant": "forge test --match-test invariant",
+    "test:invariant:debug": "forge test --match-test invariant -vvv",
+    "test:coverage": "forge coverage --report summary",
+    "test:gas": "forge test --gas-report",
+    "gas-snapshot": "forge snapshot --desc --no-match-test ^skip_ && echo '\nGas Snapshots \n--------------' && cat .gas-snapshot"
+  },
+  "dependencies": {
+    "@lukso/lsp7-contracts": "^0.15.0"
+  },
+  "devDependencies": {
+    "prettier-plugin-solidity": "^1.4.1",
+    "@lukso/lsp1delegate-contracts": "^0.15.0",
+    "@lukso/lsp6-contracts": "^0.15.0",
+    "@lukso/universalprofile-contracts": "^0.15.0",
+    "solhint": "^5.0.4"
+  }
+}

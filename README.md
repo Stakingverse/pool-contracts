@@ -1,44 +1,83 @@
 # Universal Page Contracts
 
-[![test](https://github.com/Universal-Page/contracts/actions/workflows/test.yml/badge.svg)](https://github.com/Universal-Page/contracts/actions/workflows/test.yml)
-[![analyze](https://github.com/Universal-Page/contracts/actions/workflows/analyze.yaml/badge.svg)](https://github.com/Universal-Page/contracts/actions/workflows/analyze.yaml)
+Repository for the Stakingverse contracts. This repository includes the following contracts:
+- Vault 
+- Liquid Staking Token (sLYX) based on the LUKSO LSP7 standard. [Pegged to the Vault contract below](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract).
 
-| network | contract / library    | address                                    |
-| ------- | --------------------- | ------------------------------------------ |
-| mainnet | PageName              | 0x39456bcd4d450e55f851f97c30df828a4e1f6c66 |
-| mainnet | GenesisDigitalAsset   | 0x8da488c29fb873c9561ccf5ff44dda6c1deddc37 |
-| mainnet | CollectorDigitalAsset | 0x5599d0ae8576250db2b9a9975fd3db1f6399b4fd |
-| mainnet | Participant           | 0xa29aeaabb5da0cc3635576933a66c1b714f058c1 |
-| mainnet | LSP7Listings          | 0xe7f5c709d62bcc3701f4c0cb871eb77e301283b5 |
-| mainnet | LSP7Offers            | 0xb2379f3f3c623cd2ed18e97e407cdda8fe6c6da6 |
-| mainnet | LSP7Orders            | 0x07d815d546072547471d9cde244367d274268b35 |
-| mainnet | LSP7Marketplace       | 0xe04cf97440cd191096c4103f9c48abd96184fb8d |
-| mainnet | LSP8Listings          | 0x4faab47b234c7f5da411429ee86cb15cb0754354 |
-| mainnet | LSP8Offers            | 0xed189b51455c9714aa49b0c55529469c512b10b6 |
-| mainnet | LSP8Auctions          | 0x6eee8a19198bf39f2cefc24713acbdcc3c016dec |
-| mainnet | LSP8Marketplace       | 0x6807c995602eaf523a95a6b97acc4da0d3894655 |
-| mainnet | Points                | 0x157668416776c78EaB825D0d3969d75DC7dD7C0D |
-| mainnet | Royalties             | 0x391B24e80d85587C1cb698f0cD7Dfb7191D6875F |
-| mainnet | Vault                 | 0xa5b37d755b97c272853b9726c905414706a0553a |
-| testnet | PageName              | 0x8b08eeb9183081de7e2d4ae49fad4afb56e31ab4 |
-| testnet | GenesisDigitalAsset   | 0xc06bcd7a286308861bd99da220acbc8901949fbd |
-| testnet | CollectorDigitalAsset | 0x2eef6216274bf0ede21a8a55cbb5b896bb82ac8b |
-| testnet | Participant           | 0x5a485297a1b909032a6b7000354f3322047028ee |
-| testnet | LSP7Listings          | 0x44cd7d06ceb509370b75e426ea3c12824a665e36 |
-| testnet | LSP7Offers            | 0xdf9defd55365b7b073cae009cf53dd830902c5a7 |
-| testnet | LSP7Orders            | 0xf030798a7b2722c32b58fae3aee5019989cd409f |
-| testnet | LSP7Marketplace       | 0xc9c940a35fc8d3522085b991ce3e1a920354f19a |
-| testnet | LSP8Listings          | 0xf069f9b8e0f96d742c6dfd3d78b0e382f3411207 |
-| testnet | LSP8Offers            | 0xaebcc2c80abacb7e4d928d4c0a52c7bbeba4c4be |
-| testnet | LSP8Auctions          | 0x39456bcd4d450e55f851f97c30df828a4e1f6c66 |
-| testnet | LSP8Marketplace       | 0xe9f0feab3d50ccbe40d99f669fe1e89172908cdf |
-| testnet | Points                | 0x3582f474F6E9FB087651b135d6224500A89e6f44 |
-| testnet | Royalties             | 0x1c51619209EFE37C759e4a9Ca91F1e68A96E19E3 |
+| Contract                                 | Address                                      |
+| :--------------------------------------- | :------------------------------------------- |
+| Staking Vault Proxy                      | `0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04` |
+| Staking Vault Implementation (Singleton) | `0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4` |
 
-## Analyze
+## Installation
 
-Run `slither` by `slither . --triage-mode`.
+```bash
+# Install LUKSO and OpenZeppelin contracts dependencies
+npm install
 
-## License
+# Install forge contracts testing library
+forge install https://github.com/foundry-rs/forge-std --no-commit --no-git
+```
 
-See [LGPL-2.1 license](LICENSE)
+## Build
+
+Run the following command to build the contract ABIs.
+
+```shell
+npm run build
+```
+
+## Tests
+
+```shell
+# Run all tests (including invariant tests)
+npm run test
+
+# Run only the invariant tests
+npm run test:invariant
+
+# Run all the tests and get the code coverage of the test suite
+# NB: Invariant tests are skipped as they keep the test hanging
+npm run test:coverage -- --no-match-test ^invariant
+
+# Run all the tests and get the gas usage of the functions of the contracts
+npm run test:gas
+```
+
+You can also display more log informations for debugging using the `:debug` suffix when running the tests with npm.
+
+```shell
+npm run test:debug
+npm run test:invariant:debug
+```
+
+## Analysis
+
+### Code coverage
+
+| File                                          | % Lines          | % Statements     | % Branches    | % Funcs        |
+| :-------------------------------------------- | ---------------- | ---------------- | ------------- | -------------- |
+| src/LiquidStakingToken.sol                    | 88.89% (24/27)   | 89.47% (34/38)   | 100.00% (3/3) | 72.73% (8/11)  |
+| src/LiquidStakingTokenAutoMintExtension.sol   | 100.00% (11/11)  | 100.00% (12/12)  | 100.00% (1/1) | 100.00% (4/4)  |
+| test/base/Handler.t.sol                       | 0.00% (0/11)     | 0.00% (0/11)     | 100.00% (0/0) | 0.00% (0/3)    |
+| test/base/LiquidStakingTokenBaseTest.t.sol    | 100.00% (43/43)  | 100.00% (47/47)  | 100.00% (1/1) | 100.00% (4/4)  |
+| test/base/UniversalProfileTestHelpers.t.sol   | 100.00% (21/21)  | 100.00% (26/26)  | 100.00% (0/0) | 100.00% (5/5)  |
+| test/mocks/MockContractWithLSP1Reentrancy.sol | 80.00% (8/10)    | 81.82% (9/11)    | 50.00% (1/2)  | 100.00% (5/5)  |
+| test/mocks/MockDepositContract.sol            | 33.33% (1/3)     | 25.00% (1/4)     | 100.00% (0/0) | 33.33% (1/3)   |
+| Total                                         | 85.71% (108/126) | 86.58% (129/149) | 85.71% (6/7)  | 77.14% (27/35) |
+
+### Slither
+
+Command to generate the output of Slither, the static analysis tool. Run `slither` with `slither . --triage-mode`.
+
+```shell
+# For sLYX
+slither src/LiquidStakingToken.sol --checklist --no-fail-pedantic --show-ignored-findings > slither_report_sLYX.md
+
+# For the auto-mint LSP17 extension
+slither src/LiquidStakingTokenAutoMintExtension.sol --checklist --no-fail-pedantic --show-ignored-findings > slither_report_LiquidStakingTokenAutoMintExtension.md
+```
+
+
+
+
