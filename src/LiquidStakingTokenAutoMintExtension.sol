@@ -2,20 +2,20 @@
 pragma solidity ^0.8.22;
 
 // Interfaces
-import {IVault, IVaultStakeRecipient} from "../src/Vault.sol";
+import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
 import {ILSP7DigitalAsset as ILSP7} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // Modules
 import {LSP17Extension} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Extension.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-/// @dev Reverts when an address other than the Liquid Staking Token contract is trying to call
-/// the `deposit(address)` function on this LSP17 Extension contract.
-error OnlyCallableByLiquidStakingTokenContract(address caller);
-
-/// @dev Reverts when trying to transfer some Vault's stake to this LSP17 Auto Mint extension contract via `transferStake(address,uint256,bytes)`.
-/// This prevents funds from being locked, as this contract cannot re-transfer them.
-error LSP17AutoMintExtensionCannotHoldVaultStake();
+// Errors
+import {
+    InvalidVaultAddress,
+    InvalidLSTAddress,
+    OnlyCallableByLiquidStakingTokenContract,
+    LSP17AutoMintExtensionCannotHoldVaultStake
+} from "./Errors.sol";
 
 /// @title LSP17 Extension that can be linked to a Liquid Staking Token to allow minting liquid staking tokens immediately while depositing.abi
 /// This is achieved by:
@@ -28,11 +28,19 @@ error LSP17AutoMintExtensionCannotHoldVaultStake();
 /// - LSP17 docs: https://docs.lukso.tech/standards/accounts/lsp17-contract-extension
 /// - LSP17 specs: https://github.com/lukso-network/LIPs/blob/main/LSPs/LSP-17-ContractExtension.md
 contract LiquidStakingTokenAutoMintExtension is ReentrancyGuard, LSP17Extension {
-    IVault internal immutable _VAULT_ADDRESS;
+    IVault internal immutable _STAKING_VAULT;
     ILSP7 internal immutable _LIQUID_STAKING_TOKEN;
 
-    constructor(IVault vaultAddress_, ILSP7 liquidStakingToken_) {
-        _VAULT_ADDRESS = vaultAddress_;
+    constructor(IVault stakingVault_, ILSP7 liquidStakingToken_) {
+        if (address(stakingVault_) == address(0)) {
+            revert InvalidVaultAddress(address(stakingVault_));
+        }
+
+        if (address(liquidStakingToken_) == address(0)) {
+            revert InvalidLSTAddress(address(liquidStakingToken_));
+        }
+
+        _STAKING_VAULT = stakingVault_;
         _LIQUID_STAKING_TOKEN = liquidStakingToken_;
     }
 
@@ -45,8 +53,8 @@ contract LiquidStakingTokenAutoMintExtension is ReentrancyGuard, LSP17Extension 
             revert OnlyCallableByLiquidStakingTokenContract(msg.sender);
         }
 
-        _VAULT_ADDRESS.deposit{value: msg.value}(address(this));
-        _VAULT_ADDRESS.transferStake(address(_LIQUID_STAKING_TOKEN), msg.value, "");
+        _STAKING_VAULT.deposit{value: msg.value}(address(this));
+        _STAKING_VAULT.transferStake(address(_LIQUID_STAKING_TOKEN), msg.value, "");
         _LIQUID_STAKING_TOKEN.transfer({from: address(this), to: beneficiary, amount: msg.value, force: true, data: ""});
     }
 
