@@ -1,23 +1,45 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Vault, IVault} from "../src/Vault.sol";
-import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {LSP7CannotSendWithAddressZero} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
-import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
-import {InvalidRecipientForLSTTokensTransfer} from "../src/LiquidStakingToken.sol";
+// interfaces
+import {ILSP7DigitalAsset as ILSP7} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
+import {Vault, IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
 
 // errors
+import {LSP7CannotSendWithAddressZero} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
 import {
+    InvalidVaultAddress,
+    InvalidLSTAddress,
     OnlyCallableByLiquidStakingTokenContract,
+    InvalidRecipientForLSTTokensTransfer,
     LSP17AutoMintExtensionCannotHoldVaultStake
-} from "../src/LiquidStakingTokenAutoMintExtension.sol";
+} from "../src/Errors.sol";
+
+// tests
+import {LiquidStakingTokenAutoMintExtension} from "../src/LiquidStakingTokenAutoMintExtension.sol";
+import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
 
 /// @title Testing deposit extension (replace by the group of functionalities you are testing in this file)
 // ---------------------------------
 contract DepositExtension is LiquidStakingTokenBaseTest {
     function setUp() public {
         _setUpLiquidStakingToken({setDepositExtension: true});
+    }
+
+    function test_cannotDeployExtensionWithAddressZeroAsVault() public {
+        address vaultPlaceholderAddress = address(0);
+        address lstAddress = makeAddr("lst");
+
+        vm.expectRevert(abi.encodeWithSelector(InvalidVaultAddress.selector, address(0)));
+        new LiquidStakingTokenAutoMintExtension(IVault(vaultPlaceholderAddress), ILSP7(lstAddress));
+    }
+
+    function test_cannotDeployExtensionWithAddressZeroAsLST() public {
+        address vaultPlaceholderAddress = makeAddr("vault");
+        address lstAddress = address(0);
+
+        vm.expectRevert(abi.encodeWithSelector(InvalidLSTAddress.selector, address(0)));
+        new LiquidStakingTokenAutoMintExtension(IVault(vaultPlaceholderAddress), ILSP7(lstAddress));
     }
 
     function test_shouldAllowDepositDirectlyToLSTContract() public beforeTest(10_000 ether) makeInitialDeposit {
@@ -73,7 +95,7 @@ contract DepositExtension is LiquidStakingTokenBaseTest {
 
         // 3. LST Tokens minted (`Transfer` with `from = address(0)`) to the extension
         vm.expectEmit(true, true, true, true, address(liquidStakingToken));
-        emit ILSP7DigitalAsset.Transfer({
+        emit ILSP7.Transfer({
             operator: address(vault),
             from: address(0),
             to: address(autoMintExtension),
@@ -84,7 +106,7 @@ contract DepositExtension is LiquidStakingTokenBaseTest {
 
         // 4. Extension `Transfer` the minted LST tokens to user
         vm.expectEmit(true, true, true, true, address(liquidStakingToken));
-        emit ILSP7DigitalAsset.Transfer({
+        emit ILSP7.Transfer({
             operator: address(autoMintExtension),
             from: address(autoMintExtension),
             to: alice,

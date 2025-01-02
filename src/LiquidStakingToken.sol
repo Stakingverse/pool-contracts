@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 // Interfaces
 import {ITransparentUpgradeableProxy as IProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {IVault, IVaultStakeRecipient} from "./Vault.sol";
+import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
 import {ILiquidStakingToken} from "./ILiquidStakingToken.sol";
 
 // Modules
@@ -16,14 +16,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 // Constants
 import {_LSP4_TOKEN_TYPE_TOKEN} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
-/// @dev Reverts when trying to transfer LST to one of these invalid recipient address:
-/// - this liquid Staking token contract
-/// - the vault proxy contract
-/// - the vault logic implementation contract
-error InvalidRecipientForLSTTokensTransfer(address recipient);
-
-/// @dev Reverts when an address other than the vault is trying to mint sLYX
-error OnlyVaultAllowedToMint(address caller);
+import {InvalidRecipientForLSTTokensTransfer, OnlyVaultAllowedToMint, InvalidVaultAddress} from "./Errors.sol";
 
 // Token staking is a process that involves holding assets in a contract to support protocol operations such as market making.
 // In exchange, the asset holders are rewarded with tokens which could be of the same type that they deposited, or not.
@@ -48,6 +41,10 @@ contract LiquidStakingToken is
     }
 
     function initialize(address tokenContractOwner_, IVault stakingVault_) external initializer {
+        if (address(stakingVault_) == address(0)) {
+            revert InvalidVaultAddress(address(stakingVault_));
+        }
+
         __Pausable_init();
 
         LSP7DigitalAssetInitAbstract._initialize({
