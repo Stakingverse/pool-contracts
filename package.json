@@ -1,6 +1,6 @@
 {
-  "name": "StakingVerse pool contracts",
-  "description": "Contracts for the Vault and the Liquid Staking token to enable liquid staking after staking into StakingVerse's vault.",
+  "name": "Stakingverse pool contracts",
+  "description": "Contracts for the Vault and the Liquid Staking token to enable liquid staking after staking into Stakingverse's vault.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Stakingverse/pool-contracts/tree/main"

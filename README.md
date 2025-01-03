@@ -1,4 +1,4 @@
-# Universal Page Contracts
+# Stakingverse Contracts
 
 Repository for the Stakingverse contracts. This repository includes the following contracts:
 - Vault 
