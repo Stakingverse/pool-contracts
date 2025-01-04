@@ -141,6 +141,17 @@ contract VaultTest is Test {
         vault.deposit{value: 0}(beneficiary);
     }
 
+    function test_Revert_DepositWithZeroAddressAsBeneficiary() public {
+        address alice = makeAddr("alice");
+        uint256 amount = 10 ether;
+
+        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAddress.selector, address(0));
+
+        hoax(alice, amount);
+        vm.expectRevert(expectedRevertData);
+        vault.deposit{value: amount}(address(0));
+    }
+
     function test_Revert_DepositOverLimit() public {
         vm.prank(owner);
         vault.setDepositLimit(10 ether);
@@ -1537,7 +1548,7 @@ contract VaultTest is Test {
         assertEq(vault.sharesOf(alice), 0);
         assertEq(vault.balanceOf(alice), 0 ether);
 
-        // Alice - Attacker simply deposits 100 wie
+        // Alice - Attacker simply deposits 100 wei
         vm.deal(alice, 1_000_000 ether);
         vm.prank(alice);
         vault.deposit{value: _MINIMUM_REQUIRED_SHARES + 1 wei}(alice);

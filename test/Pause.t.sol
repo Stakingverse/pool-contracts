@@ -8,19 +8,14 @@ import {OwnableCallerNotTheOwner} from "@erc725/smart-contracts/contracts/errors
 // ------------------------
 contract Pausable is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_onlyContractOwnerCanPause(address anyAddress) public {
         vm.assume(anyAddress != tokenContractOwner);
         vm.assume(anyAddress != proxyAdmin);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableCallerNotTheOwner.selector,
-                anyAddress
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableCallerNotTheOwner.selector, anyAddress));
         vm.prank(anyAddress);
         sLyxToken.pause();
     }
@@ -57,12 +52,7 @@ contract Pausable is SLYXTokenBaseTest {
 
         assertEq(sLyxToken.paused(), true);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableCallerNotTheOwner.selector,
-                anyAddress
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(OwnableCallerNotTheOwner.selector, anyAddress));
         vm.prank(anyAddress);
         sLyxToken.unpause();
     }
@@ -88,11 +78,7 @@ contract Pausable is SLYXTokenBaseTest {
         sLyxToken.unpause();
     }
 
-    function test_cannotMintSLYXTokensIfContractIsPaused()
-        public
-        beforeTest(1_000_000 ether)
-        makeInitialDeposit
-    {
+    function test_cannotMintSLYXTokensIfContractIsPaused() public beforeTest(1_000_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 depositAmount = 100 ether;
 
@@ -111,11 +97,7 @@ contract Pausable is SLYXTokenBaseTest {
         vault.transferStake(address(sLyxToken), depositAmount, "");
     }
 
-    function test_cannotBurnSLYXokensIfContractIsPaused()
-        public
-        beforeTest(1_000_000 ether)
-        makeInitialDeposit
-    {
+    function test_cannotBurnSLYXokensIfContractIsPaused() public beforeTest(1_000_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 depositAmount = 100 ether;
 

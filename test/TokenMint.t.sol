@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 // Test helpers
+import {console} from "forge-std/Test.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalProfileTestHelpers.t.sol";
 
@@ -10,7 +11,7 @@ import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalPro
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // modules
-import {Vault} from "../src/Vault.sol";
+import {Vault, IVault} from "../src/Vault.sol";
 
 // libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
@@ -23,12 +24,15 @@ import {
 
 import {_INTERFACEID_LSP7} from "@lukso/lsp7-contracts/contracts/LSP7Constants.sol";
 
+// errors
+import {NoExtensionFoundForFunctionSelector} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Errors.sol";
+
 /// @title Testing minting sLYX tokens via `transferStake(sLyxToken, stakeAmount, data)`
 /// ------------------
 contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
     function setUp() public {
         UniversalProfileTestHelpers._deployLSP1DelegateSingleton();
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_depositLYXToVaultThenMintSLYXTokens(uint256 amount) public beforeTest(1_000_000 ether) {
@@ -124,10 +128,11 @@ contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
     }
 
     function test_shouldNotAllowNonVaultToMint(address anyAddress) public beforeTest(1_000_000 ether) {
-        vm.assume(
-            anyAddress != address(0) && anyAddress != proxyAdmin && anyAddress != address(vault)
-                && anyAddress != address(sLyxToken)
-        );
+        vm.assume(anyAddress != address(0));
+        vm.assume(anyAddress != proxyAdmin);
+        vm.assume(anyAddress != address(vault));
+        vm.assume(anyAddress != address(sLyxToken));
+        vm.assume(anyAddress != address(sLyxTokenImplementation));
 
         vm.deal(anyAddress, 100 ether);
         vm.startPrank(anyAddress);
@@ -339,5 +344,85 @@ contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
         assertEq(sLyxToken.balanceOf(alice), depositAmount);
 
         vm.stopPrank();
+    }
+}
+
+contract DepositAndMintSLYXSameTx is SLYXTokenBaseTest {
+    function setUp() public {
+        _setUpSLYXToken();
+    }
+
+    function test_shouldDepositAndMintSLYXImmediatelyAndEmitCorrectEvents()
+        public
+        beforeTest(10_000 ether)
+        makeInitialDeposit
+    {
+        address alice = makeAddr("alice");
+        uint256 amount = 100 ether;
+        hoax(alice, amount);
+
+        // 1. LYX `Deposited` by alice for the SLYXToken contract
+        vm.expectEmit(true, true, false, false, address(vault));
+        emit IVault.Deposited({account: alice, beneficiary: address(sLyxToken), amount: amount});
+
+        // 2. sLYX tokens minted (`Transfer` with `from = address(0)`) to alice
+        vm.expectEmit(true, true, true, true, address(sLyxToken));
+        emit ILSP7DigitalAsset.Transfer({
+            operator: address(vault),
+            from: address(0),
+            to: alice,
+            amount: amount,
+            force: true,
+            data: ""
+        });
+
+        vault.deposit{value: amount}(address(sLyxToken));
+    }
+
+    function test_cannotCallDepositDirectlyOnSLYXTokenContract() public beforeTest(10_000 ether) makeInitialDeposit {
+        address alice = makeAddr("alice");
+        uint256 amount = 100 ether;
+        vm.deal(alice, amount);
+
+        bytes memory depositCalldata = abi.encodeWithSelector(vault.deposit.selector, address(sLyxToken));
+
+        bytes memory expectedRevertData =
+            abi.encodeWithSelector(NoExtensionFoundForFunctionSelector.selector, IVault.deposit.selector);
+
+        // Test revert with function call
+        vm.prank(alice);
+        vm.expectRevert(expectedRevertData);
+        IVault(address(sLyxToken)).deposit{value: amount}(address(sLyxToken));
+
+        // Test as low level call
+        vm.prank(alice);
+        (bool success, bytes memory revertData) = address(sLyxToken).call{value: amount}(depositCalldata);
+        assertFalse(success);
+        assertEq(revertData, expectedRevertData);
+    }
+
+    function test_DepositAndMintSLYXImmediatelyWorkTheSameAsDepositAndTransferStake()
+        public
+        beforeTest(10_000 ether)
+        makeInitialDeposit
+    {
+        address alice = makeAddr("alice");
+        vm.deal(alice, 100 ether);
+
+        uint256 amount = 50 ether;
+
+        vm.prank(alice);
+        vault.deposit{value: amount}(address(sLyxToken));
+
+        assertEq(vault.sharesOf(alice), 0);
+        assertEq(vault.sharesOf(address(sLyxToken)), amount);
+        assertEq(sLyxToken.balanceOf(alice), amount);
+
+        uint256 newAliceSLYXBalance = _depositAndClaimAllAsSLYXTokens(alice, amount, "");
+        assertEq(vault.sharesOf(alice), 0);
+        assertEq(vault.sharesOf(address(sLyxToken)), amount * 2);
+        assertEq(sLyxToken.balanceOf(alice), amount * 2);
+
+        assertEq(vault.sharesOf(address(sLyxToken)), newAliceSLYXBalance);
     }
 }

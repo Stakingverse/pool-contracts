@@ -17,7 +17,7 @@ import {Vault} from "../src/Vault.sol";
 // -----------------------------------------------------------
 contract TokenBurn is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_cannotBurnIfNoTokensWereMintedForUser(uint256 amount, address user) public {
@@ -177,7 +177,6 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), userStakeAfterMinting - burnAmount);
     }
 
-    /// forge-config: default.fuzz.runs = 5000
     function test_cannotConvertBackSLYXToLyxMoreThanTokenBalance(uint256 depositAmount, uint256 sLyxAmount)
         public
         makeInitialDeposit

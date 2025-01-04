@@ -27,7 +27,7 @@ import {
 // -----------------------------------------------------
 contract Invariants is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function invariant_metadataIsConstant() public view {
@@ -57,25 +57,22 @@ contract Invariants is SLYXTokenBaseTest {
         assumeNotPrecompile(to);
         vm.assume(to != address(0));
         vm.assume(to != address(sLyxToken));
+        vm.assume(to != address(sLyxTokenImplementation));
         vm.assume(to != address(sLyxToken.stakingVault()));
         vm.assume(to != address(vaultImplementation));
 
         uint256 preSupply = sLyxToken.totalSupply();
 
         _depositAndClaimAllAsSLYXTokens({user: to, depositAmount: amount, optionalData: ""});
-        _depositAndClaimAllAsSLYXTokens({user: to, depositAmount: amount, optionalData: ""});
 
         uint256 postSupply = sLyxToken.totalSupply();
         uint256 toBalance = sLyxToken.balanceOf(to);
 
         assertEq(postSupply, preSupply + amount, "Total supply did not increase correctly after minting");
-        assertEq(postSupply, preSupply + amount, "Total supply did not increase correctly after minting");
-
-        assertEq(toBalance, amount, "Recipient balance incorrect after minting");
         assertEq(toBalance, amount, "Recipient balance incorrect after minting");
     }
 
-    function invariant_sharesShouldAlwaysBeLowerThanStakedLYXandSLYX() public {
+    function invariant_sLYXShouldBeRepresentedAsSharesAndAlwaysBeLowerThanStakedLYX() public {
         uint256 amount = 100 ether;
         address alice = makeAddr("alice");
         hoax(alice, amount);
@@ -95,30 +92,31 @@ contract Invariants is SLYXTokenBaseTest {
         // shares should remain the same
         assertEq(vault.sharesOf(alice), amount - _MINIMUM_REQUIRED_SHARES);
 
-        // shares should be lower than the balance
+        // shares should be lower than the balance of staked LYX
         assertLt(vault.sharesOf(alice), vault.balanceOf(alice));
 
-        uint256 aliceBalance = vault.balanceOf(alice);
+        uint256 aliceStake = vault.balanceOf(alice);
+        uint256 aliceShares = vault.sharesOf(alice);
         vm.prank(alice);
-        vault.transferStake(address(sLyxToken), aliceBalance, "");
-        assertEq(vault.balanceOf(address(sLyxToken)), aliceBalance);
-        assertEq(sLyxToken.balanceOf(alice), aliceBalance);
+        vault.transferStake(address(sLyxToken), aliceStake, "");
+        assertEq(vault.balanceOf(address(sLyxToken)), aliceStake);
+        // SLYX balance should be represented as shares
+        assertEq(sLyxToken.balanceOf(alice), aliceShares);
 
-        // sLYX supply = alice balance of sLYX
+        // sLYX total supply = alice balance of sLYX
         assertEq(sLyxToken.totalSupply(), sLyxToken.balanceOf(alice));
 
-        // sLYX supply != sLYX Token contract shares in vault
-        // The total number of sLYX minted should be greater than the number of shares
-        assertLt(vault.sharesOf(address(sLyxToken)), sLyxToken.totalSupply());
+        // The total number of sLYX minted (sLYX total supply) should always be
+        // the number of shares held by the SLYXToken contract address in the vault
+        assertEq(vault.sharesOf(address(sLyxToken)), sLyxToken.totalSupply());
 
-        // Should pass, and not revert (due to incorrect accounting due to rewards shares != staked tokens)
         vm.prank(alice);
-        sLyxToken.burn(alice, aliceBalance, "");
+        sLyxToken.burn(alice, aliceShares, "");
 
         assertEq(sLyxToken.balanceOf(alice), 0);
         assertEq(sLyxToken.totalSupply(), 0);
         assertEq(vault.sharesOf(address(sLyxToken)), 0);
-        assertEq(vault.balanceOf(alice), aliceBalance);
+        assertEq(vault.balanceOf(alice), aliceStake);
         assertEq(vault.sharesOf(alice), amount - _MINIMUM_REQUIRED_SHARES);
     }
 
@@ -152,14 +150,14 @@ contract Invariants is SLYXTokenBaseTest {
         address bob = makeAddr("bob");
         uint256 bobSlyxBalance = _depositAndClaimAllAsSLYXTokens(bob, 100 ether, "");
         uint256 expectedBobShares = SLYXTokenBaseTest._toShares(100 ether);
-        assertEq(bobSlyxBalance, expectedBobShares); // TODO: we need a `toShares()` function in the Vault
+        assertEq(bobSlyxBalance, expectedBobShares);
         assertEq(
             vault.balanceOf(address(sLyxToken)),
             200 ether + 9 ether - 90 - 2 wei // TODO: clarify this calculation
         );
 
         uint256 bobSLYXValueInLYX = sLyxToken.getNativeTokenValue(bobSlyxBalance);
-        assertEq(bobSLYXValueInLYX, 100 ether - 2 wei); // TODO: clarify this rounding error
+        assertEq(bobSLYXValueInLYX, 100 ether - 2 wei);
         assertEq(sLyxToken.getSLYXTokenValue(bobSLYXValueInLYX), bobSlyxBalance - 1 wei);
     }
 

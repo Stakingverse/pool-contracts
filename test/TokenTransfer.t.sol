@@ -25,7 +25,7 @@ import {InvalidRecipientForSLYXTokensTransfer} from "../src/SLYXToken.sol";
 // ----------------------------------------------------------------------
 contract TokenTransfer is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_cannotTransferTokensWithVaultAsRecipient(address anyAddress) public beforeTest(1_000_000 ether) {
@@ -35,6 +35,7 @@ contract TokenTransfer is SLYXTokenBaseTest {
         vm.assume(anyAddress != address(vault));
         vm.assume(anyAddress != address(vaultImplementation));
         vm.assume(anyAddress != address(sLyxToken));
+        vm.assume(anyAddress != address(sLyxTokenImplementation));
         assumeNotPrecompile(anyAddress);
 
         vm.deal(anyAddress, 100 ether);

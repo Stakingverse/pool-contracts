@@ -9,7 +9,7 @@ import {LSP7TokenContractCannotHoldValue} from "@lukso/lsp7-contracts/contracts/
 // --------------------------------------
 contract Withdraw is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_depositConvertTransferBurnWithdraw() public beforeTest(1_000_000 ether) {

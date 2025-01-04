@@ -15,7 +15,7 @@ import {
 // ------------------------
 contract Deployment is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpSLYXToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
     function test_deploymentParametersOfSLYXToken() public view {

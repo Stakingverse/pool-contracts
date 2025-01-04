@@ -325,6 +325,10 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
         totalShares += shares;
         totalUnstaked += amount;
         emit Deposited(account, beneficiary, amount);
+
+        if (ERC165Checker.supportsInterface(beneficiary, type(IVaultStakeRecipient).interfaceId)) {
+            IVaultStakeRecipient(beneficiary).onVaultStakeReceived(account, amount, "");
+        }
     }
 
     function withdraw(uint256 amount, address beneficiary) external override nonReentrant whenNotPaused {
