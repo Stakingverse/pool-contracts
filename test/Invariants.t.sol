@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ITransparentUpgradeableProxy as IProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ITransparentUpgradeableProxy as IProxy} from
+    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 // Testing
 import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
 
 // Constants
-import {_LSP4_TOKEN_TYPE_TOKEN, _LSP4_TOKEN_NAME_KEY, _LSP4_TOKEN_SYMBOL_KEY, _LSP4_TOKEN_TYPE_KEY} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
+import {
+    _LSP4_TOKEN_TYPE_TOKEN,
+    _LSP4_TOKEN_NAME_KEY,
+    _LSP4_TOKEN_SYMBOL_KEY,
+    _LSP4_TOKEN_TYPE_KEY
+} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
 /// @title Foundry invariant tests
 // -----------------------------------------------------
@@ -18,20 +24,13 @@ contract Invariants is LiquidStakingTokenBaseTest {
 
     function invariant_metadataIsConstant() public view {
         // We need to re-encode in memory, as in the ERC725Y storage, strings are not stored as [string.length][string]
-        bytes memory encodedName = abi.encode(
-            liquidStakingToken.getData(_LSP4_TOKEN_NAME_KEY)
-        );
+        bytes memory encodedName = abi.encode(liquidStakingToken.getData(_LSP4_TOKEN_NAME_KEY));
         string memory name = abi.decode(encodedName, (string));
 
-        bytes memory encodedSymbol = abi.encode(
-            liquidStakingToken.getData(_LSP4_TOKEN_SYMBOL_KEY)
-        );
+        bytes memory encodedSymbol = abi.encode(liquidStakingToken.getData(_LSP4_TOKEN_SYMBOL_KEY));
         string memory symbol = abi.decode(encodedSymbol, (string));
 
-        uint256 tokenType = abi.decode(
-            liquidStakingToken.getData(_LSP4_TOKEN_TYPE_KEY),
-            (uint256)
-        );
+        uint256 tokenType = abi.decode(liquidStakingToken.getData(_LSP4_TOKEN_TYPE_KEY), (uint256));
         uint256 decimals = liquidStakingToken.decimals();
 
         assertEq(name, "Staked LYX");
@@ -40,10 +39,11 @@ contract Invariants is LiquidStakingTokenBaseTest {
         assertEq(decimals, 18);
     }
 
-    function testInvariant_mintingAffectsTotalSupplyAndBalance(
-        address to,
-        uint256 amount
-    ) public beforeTest(1_000_000 ether) makeInitialDeposit {
+    function testInvariant_mintingAffectsTotalSupplyAndBalance(address to, uint256 amount)
+        public
+        beforeTest(1_000_000 ether)
+        makeInitialDeposit
+    {
         vm.assume(amount <= 1_000_000 ether - _VAULT_INITIAL_DEPOSIT);
 
         assumeNotPrecompile(to);
@@ -54,25 +54,51 @@ contract Invariants is LiquidStakingTokenBaseTest {
 
         uint256 preSupply = liquidStakingToken.totalSupply();
 
-        _depositAndClaimAllAsLiquidStakingTokens({
-            user: to,
-            depositAmount: amount,
-            optionalData: ""
-        });
+        _depositAndClaimAllAsLiquidStakingTokens({user: to, depositAmount: amount, optionalData: ""});
 
         uint256 postSupply = liquidStakingToken.totalSupply();
         uint256 toBalance = liquidStakingToken.balanceOf(to);
 
-        assertEq(
-            postSupply,
-            preSupply + amount,
-            "Total supply did not increase correctly after minting"
-        );
+        assertEq(postSupply, preSupply + amount, "Total supply did not increase correctly after minting");
 
-        assertEq(
-            toBalance,
-            amount,
-            "Recipient balance incorrect after minting"
-        );
+        assertEq(toBalance, amount, "Recipient balance incorrect after minting");
+    }
+
+    // TODO: resolve this test
+    function test_Issue15() public makeInitialDeposit {
+        vm.skip(true);
+
+        // deposit 70 LYX
+        address depositor1 = makeAddr("depositor1");
+        vm.deal(depositor1, 70 ether);
+        vm.prank(depositor1);
+        vault.deposit{value: 70 ether}(depositor1);
+
+        // deposit other 2 LYX
+        address depositor2 = makeAddr("depositor2");
+        vm.deal(depositor2, 2 ether);
+        vm.prank(depositor2);
+
+        vault.deposit{value: 2 ether}(depositor2);
+
+        // depositor1 transfers 20 LYX to LST contract to mint 10 sLYX
+        vm.prank(depositor1);
+        vault.transferStake(address(liquidStakingToken), 20 ether, "");
+
+        // the invariant `sharesOf LST contract == totalsLYXMinted` // is still valid
+        assertEq(vault.sharesOf(address(liquidStakingToken)), liquidStakingToken.totalSupply());
+
+        // malicious user can force sending few LYX to the Vault using selfdestruct
+        // not triggering receive() and no triggering deposit() and breaking the invariant
+        vm.deal(address(vault), address(vault).balance + 200000 gwei);
+        vm.prank(vaultOracle);
+        vault.rebalance();
+
+        // depositor2 transfers 1 LYX to LST contract
+        vm.prank(depositor2);
+        vault.transferStake(address(liquidStakingToken), 1 ether, "");
+
+        // INVARIANT IS BROKEN
+        assertEq(vault.sharesOf(address(liquidStakingToken)), liquidStakingToken.totalSupply());
     }
 }

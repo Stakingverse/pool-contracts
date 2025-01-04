@@ -84,8 +84,8 @@ contract LiquidStakingToken is
 
     /// @dev Calculate the amount of LYX backing an amount of sLYX
     function getNativeTokenValue(uint256 sLyxAmount) public view returns (uint256) {
-        // Get the total number of shares this LST contract holds (= equivalent to total number of LST tokens minted).
-        uint256 totalSLYXMinted = stakingVault.sharesOf(address(this));
+        // Get the total number of LST tokens minted.
+        uint256 totalSLYXMinted = totalSupply();
         // Get the total LYX balance held by the LST contract on the Vault
         uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
 
@@ -96,8 +96,8 @@ contract LiquidStakingToken is
 
     /// @dev Calculate the amount of sLYX backed by an amount of LYX
     function getLiquidStakingTokenValue(uint256 lyxAmount) public view returns (uint256) {
+        uint256 totalSLYXMinted = totalSupply();
         uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
-        uint256 totalSLYXMinted = stakingVault.sharesOf(address(this));
 
         return lyxAmount.mulDiv(totalSLYXMinted, lstTokenContractStake);
     }
@@ -137,7 +137,12 @@ contract LiquidStakingToken is
         // if we are burning LST tokens, re-transfer stake to user
         if (to == address(0)) {
             // Calculate the number of LYX that should be transferred back to the user for burning its tokens
-            uint256 lstAmountAsLyxStake = getNativeTokenValue(amount);
+
+            uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
+            uint256 totalSLYXMintedBeforeBurning = totalSupply() + amount;
+
+            uint256 lstAmountAsLyxStake = amount.mulDiv(lstTokenContractStake, totalSLYXMintedBeforeBurning);
+
             stakingVault.transferStake(from, lstAmountAsLyxStake, data);
         }
     }
