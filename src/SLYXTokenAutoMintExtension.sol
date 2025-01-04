@@ -2,7 +2,7 @@
 pragma solidity ^0.8.22;
 
 // Interfaces
-import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {IVault, IVaultStakeRecipient} from "./Vault.sol";
 import {ILSP7DigitalAsset as ILSP7} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // Modules

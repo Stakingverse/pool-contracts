@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-// Test Helpers
+// Test helpers
 import {Test, console} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {IVault, Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {IVault, Vault} from "../../src/Vault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
 import {
     TransparentUpgradeableProxy,
@@ -14,6 +14,7 @@ import {
 
 // Libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 // Constants
 import {_LSP17_EXTENSION_PREFIX} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Constants.sol";
@@ -88,13 +89,13 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
     function _setUpSLYXToken(bool setDepositExtension) internal {
         depositContract = new MockDepositContract();
 
-        proxyAdmin = address(1);
+        proxyAdmin = address(11);
 
-        vaultOwner = address(2);
-        vaultOperator = address(3);
-        vaultOracle = address(4);
-        vaultFeeRecipient = address(5);
-        tokenContractOwner = address(6);
+        vaultOwner = address(12);
+        vaultOperator = address(13);
+        vaultOracle = address(14);
+        vaultFeeRecipient = address(15);
+        tokenContractOwner = address(16);
 
         // Vault contracts (proxy and implementation) are already deployed on mainnet
         // but we cannot mock these addresses in Foundry tests.
@@ -145,7 +146,7 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
 
     function _depositAndClaimAllAsSLYXTokens(address user, uint256 depositAmount, bytes memory optionalData)
         internal
-        returns (uint256 sLyxTokenContractBalanceInVault)
+        returns (uint256 userSLyxBalance)
     {
         // prevent `_toShare` in the Vault to return 0
         vm.assume(depositAmount >= 1_000 wei);
@@ -153,10 +154,14 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
         hoax(user, depositAmount);
         vault.deposit{value: depositAmount}(user);
 
-        uint256 shares = vault.balanceOf(user);
+        uint256 stakedAmount = vault.balanceOf(user);
         vm.prank(user);
-        vault.transferStake(address(sLyxToken), shares, optionalData);
+        vault.transferStake(address(sLyxToken), stakedAmount, optionalData);
 
         return sLyxToken.balanceOf(user);
+    }
+
+    function _toShares(uint256 amount) internal view returns (uint256) {
+        return Math.mulDiv(amount, vault.totalShares(), vault.totalAssets()) - VAULT_ROUNDING_ERROR_LOSS;
     }
 }

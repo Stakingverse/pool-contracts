@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 // Interfaces
 import {ITransparentUpgradeableProxy as ITransparentProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {IVault, IVaultStakeRecipient} from "./Vault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
 // Modules

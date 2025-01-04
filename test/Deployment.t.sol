@@ -46,7 +46,7 @@ contract Deployment is SLYXTokenBaseTest {
     }
 
     function test_cannotInitializeSLYXTokenImplementationContract() public {
-        vm.expectRevert();
+        vm.expectRevert("Initializable: contract is already initialized");
         sLyxTokenImplementation.initialize(address(111), vault);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
-import {Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {Vault} from "../src/Vault.sol";
 import {LSP7TokenContractCannotHoldValue} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
 
 /// @title Testing Withdraw related to burning
@@ -12,10 +12,7 @@ contract Withdraw is SLYXTokenBaseTest {
         _setUpSLYXToken({setDepositExtension: false});
     }
 
-    function test_depositConvertTransferBurnWithdraw()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_depositConvertTransferBurnWithdraw() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
         address bob = makeAddr("bob");
 
@@ -43,10 +40,7 @@ contract Withdraw is SLYXTokenBaseTest {
         vm.stopPrank();
     }
 
-    function test_cannotWithdrawIfHoldingSLYXTokens()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_cannotWithdrawIfHoldingSLYXTokens() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         startHoax(alice, 100 ether);
@@ -56,20 +50,13 @@ contract Withdraw is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceStake, "");
 
-        bytes memory expectedRevertError = abi.encodeWithSelector(
-            Vault.InsufficientBalance.selector,
-            0,
-            aliceStake
-        );
+        bytes memory expectedRevertError = abi.encodeWithSelector(Vault.InsufficientBalance.selector, 0, aliceStake);
 
         vm.expectRevert(expectedRevertError);
         vault.withdraw(aliceStake, alice);
     }
 
-    function test_cannotWithdrawWithSLYXTokenContractAddressAsBeneficiary()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_cannotWithdrawWithSLYXTokenContractAddressAsBeneficiary() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         startHoax(alice, 100 ether);
@@ -77,12 +64,8 @@ contract Withdraw is SLYXTokenBaseTest {
         vault.deposit{value: 100 ether}(alice);
         uint256 aliceStake = vault.balanceOf(alice);
 
-        bytes memory expectedRevertError = abi.encodeWithSelector(
-            Vault.WithdrawalFailed.selector,
-            alice,
-            address(sLyxToken),
-            aliceStake
-        );
+        bytes memory expectedRevertError =
+            abi.encodeWithSelector(Vault.WithdrawalFailed.selector, alice, address(sLyxToken), aliceStake);
 
         vm.expectRevert(expectedRevertError);
         vault.withdraw(aliceStake, address(sLyxToken));

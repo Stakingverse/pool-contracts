@@ -10,7 +10,7 @@ import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalPro
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // modules
-import {Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {Vault} from "../src/Vault.sol";
 
 // libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";

@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 // interfaces
 import {ILSP7DigitalAsset as ILSP7} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {Vault, IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {Vault, IVault} from "../src/Vault.sol";
 
 // errors
 import {LSP7CannotSendWithAddressZero} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";

@@ -6,13 +6,13 @@ import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy as IProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {Vault} from "../src/Vault.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {SLYXToken} from "../src/SLYXToken.sol";
 
 // Interfaces
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {IVault} from "../src/Vault.sol";
 
 // Libraries
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";

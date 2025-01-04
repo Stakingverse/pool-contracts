@@ -5,11 +5,13 @@ import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Helpers
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {IVault} from "../src/Vault.sol";
 
 // Errors to tests
-import {LSP7AmountExceedsBalance, LSP7AmountExceedsAuthorizedAmount} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
-import {Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
+import {
+    LSP7AmountExceedsBalance, LSP7AmountExceedsAuthorizedAmount
+} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
+import {Vault} from "../src/Vault.sol";
 
 /// @title Testing Token `burn(address,uint256,bytes) function
 // -----------------------------------------------------------
@@ -18,10 +20,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         _setUpSLYXToken({setDepositExtension: false});
     }
 
-    function test_cannotBurnIfNoTokensWereMintedForUser(
-        uint256 amount,
-        address user
-    ) public {
+    function test_cannotBurnIfNoTokensWereMintedForUser(uint256 amount, address user) public {
         address alice = makeAddr("alice");
 
         uint256 shares = _depositAndClaimAllAsSLYXTokens(alice, 100 ether, "");
@@ -38,10 +37,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         sLyxToken.burn(user, amount, "");
     }
 
-    function test_cannotBurnZeroSLYXTokens()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_cannotBurnZeroSLYXTokens() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         uint256 shares = _depositAndClaimAllAsSLYXTokens(alice, 100 ether, "");
@@ -54,10 +50,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         sLyxToken.burn(alice, 0, "");
     }
 
-    function test_emitRightEventsAfterBurningTokens()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_emitRightEventsAfterBurningTokens() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         uint256 shares = _depositAndClaimAllAsSLYXTokens(alice, 100 ether, "");
@@ -75,21 +68,13 @@ contract TokenBurn is SLYXTokenBaseTest {
         });
 
         vm.expectEmit(true, true, false, false, address(vault));
-        emit IVault.StakeTransferred({
-            from: address(sLyxToken),
-            to: alice,
-            amount: shares,
-            data: burnData
-        });
+        emit IVault.StakeTransferred({from: address(sLyxToken), to: alice, amount: shares, data: burnData});
 
         vm.prank(alice);
         sLyxToken.burn(alice, shares, burnData);
     }
 
-    function test_shouldReTransferStakeToUserAfterBurningAllTokens()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_shouldReTransferStakeToUserAfterBurningAllTokens() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         vm.deal(alice, 100 ether);
@@ -104,9 +89,7 @@ contract TokenBurn is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceBalance, "");
 
-        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(
-            address(sLyxToken)
-        );
+        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
         assertEq(sLyxTokenContractSharesAmount, aliceBalance);
         assertEq(vault.balanceOf(alice), 0);
@@ -140,9 +123,7 @@ contract TokenBurn is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceStake, "");
 
-        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(
-            address(sLyxToken)
-        );
+        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
         assertEq(sLyxTokenContractSharesAmount, aliceStake);
         assertEq(vault.balanceOf(alice), 0);
@@ -156,11 +137,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), aliceStake - burnAmount);
     }
 
-    function test_Stake100SLYXMint50LYXBurn30LYX()
-        public
-        beforeTest(1_000_000 ether)
-        makeInitialDeposit
-    {
+    function test_Stake100SLYXMint50LYXBurn30LYX() public beforeTest(1_000_000 ether) makeInitialDeposit {
         address user = makeAddr("user");
 
         vm.deal(user, 100 ether);
@@ -179,9 +156,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         vault.transferStake(address(sLyxToken), amountToMakeLiquid, "");
         assertEq(sLyxToken.totalSupply(), amountToMakeLiquid);
 
-        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(
-            address(sLyxToken)
-        );
+        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
         uint256 userStakeAfterMinting = vault.balanceOf(user);
 
         assertEq(sLyxTokenContractSharesAmount, amountToMakeLiquid);
@@ -189,64 +164,43 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(sLyxToken.balanceOf(user), amountToMakeLiquid);
 
         uint256 burnAmount = 30 ether;
-        uint256 expectedLyxTransferred = sLyxToken.getNativeTokenValue(
-            burnAmount
-        );
+        uint256 expectedLyxTransferred = sLyxToken.getNativeTokenValue(burnAmount);
         sLyxToken.burn(user, burnAmount, "");
 
         assertEq(sLyxToken.totalSupply(), amountToMakeLiquid - burnAmount);
         assertEq(sLyxToken.balanceOf(user), amountToMakeLiquid - burnAmount);
 
         uint256 userStakeAfterBurningSLYXTokens = vault.balanceOf(user);
-        assertEq(
-            userStakeAfterBurningSLYXTokens,
-            userStakeAfterMinting + burnAmount
-        );
+        assertEq(userStakeAfterBurningSLYXTokens, userStakeAfterMinting + burnAmount);
         // since no rewards were distributed, it should be the equivalent
-        assertEq(
-            userStakeAfterBurningSLYXTokens,
-            userStakeAfterMinting + expectedLyxTransferred
-        );
-        assertEq(
-            vault.balanceOf(address(sLyxToken)),
-            userStakeAfterMinting - burnAmount
-        );
+        assertEq(userStakeAfterBurningSLYXTokens, userStakeAfterMinting + expectedLyxTransferred);
+        assertEq(vault.balanceOf(address(sLyxToken)), userStakeAfterMinting - burnAmount);
     }
 
     /// forge-config: default.fuzz.runs = 5000
-    function test_cannotConvertBackSLYXToLyxMoreThanTokenBalance(
-        uint256 depositAmount,
-        uint256 sLyxAmount
-    ) public makeInitialDeposit beforeTest(1_000_000 ether) {
+    function test_cannotConvertBackSLYXToLyxMoreThanTokenBalance(uint256 depositAmount, uint256 sLyxAmount)
+        public
+        makeInitialDeposit
+        beforeTest(1_000_000 ether)
+    {
         vm.assume(depositAmount >= _VAULT_INITIAL_DEPOSIT);
         vm.assume(depositAmount <= 1_000 ether);
         vm.assume(sLyxAmount > depositAmount);
 
         address alice = makeAddr("alice");
 
-        uint256 stake = _depositAndClaimAllAsSLYXTokens(
-            alice,
-            depositAmount,
-            ""
-        );
+        uint256 stake = _depositAndClaimAllAsSLYXTokens(alice, depositAmount, "");
         vm.assume(sLyxAmount > stake);
 
-        bytes memory expectedRevertError = abi.encodeWithSelector(
-            LSP7AmountExceedsBalance.selector,
-            stake,
-            alice,
-            sLyxAmount
-        );
+        bytes memory expectedRevertError =
+            abi.encodeWithSelector(LSP7AmountExceedsBalance.selector, stake, alice, sLyxAmount);
 
         vm.prank(alice);
         vm.expectRevert(expectedRevertError);
         sLyxToken.burn(alice, sLyxAmount, "");
     }
 
-    function test_canBurnAllSLYXTokensAsAnOperator()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_canBurnAllSLYXTokensAsAnOperator() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
         address operator = makeAddr("operator");
 
@@ -268,10 +222,11 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), 0);
     }
 
-    function test_cannotBurnMoreThanAllowanceAsOperator(
-        uint256 authorisedAmount,
-        uint256 amountTransferredByOperator
-    ) public beforeTest(1_000_000 ether) makeInitialDeposit {
+    function test_cannotBurnMoreThanAllowanceAsOperator(uint256 authorisedAmount, uint256 amountTransferredByOperator)
+        public
+        beforeTest(1_000_000 ether)
+        makeInitialDeposit
+    {
         address alice = makeAddr("alice");
         address operator = makeAddr("operator");
 
@@ -286,10 +241,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         vm.prank(alice);
         sLyxToken.authorizeOperator(operator, authorisedAmount, "");
 
-        assertEq(
-            sLyxToken.authorizedAmountFor(operator, alice),
-            authorisedAmount
-        );
+        assertEq(sLyxToken.authorizedAmountFor(operator, alice), authorisedAmount);
 
         vm.prank(operator);
         vm.expectRevert(
@@ -304,10 +256,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         sLyxToken.burn(alice, amountTransferredByOperator, "");
     }
 
-    function test_cannotBurnSLYXTokensIfNotAnOperator()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_cannotBurnSLYXTokensIfNotAnOperator() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
         address notOperator = makeAddr("notOperator");
 
@@ -344,9 +293,7 @@ contract TokenBurn is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceStake, "");
 
-        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(
-            address(sLyxToken)
-        );
+        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
         assertEq(sLyxTokenContractSharesAmount, aliceStake);
         assertEq(vault.balanceOf(alice), 0);
@@ -360,10 +307,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), aliceStake - 1 ether);
     }
 
-    function test_burnVerySmallAmountOfToken1Wei()
-        public
-        beforeTest(1_000_000 ether)
-    {
+    function test_burnVerySmallAmountOfToken1Wei() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
 
         vm.deal(alice, 100 ether);
@@ -378,9 +322,7 @@ contract TokenBurn is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceStake, "");
 
-        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(
-            address(sLyxToken)
-        );
+        uint256 sLyxTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
         assertEq(sLyxTokenContractSharesAmount, aliceStake);
         assertEq(vault.balanceOf(alice), 0);
@@ -393,11 +335,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), aliceStake - 1 wei);
     }
 
-    function test_shouldRevertWhenBurningZeroToken()
-        public
-        beforeTest(1_000_000 ether)
-        makeInitialDeposit
-    {
+    function test_shouldRevertWhenBurningZeroToken() public beforeTest(1_000_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 depositAmount = 1 ether;
 
@@ -416,9 +354,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), depositAmount);
         assertEq(sLyxToken.balanceOf(alice), depositAmount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Vault.InvalidAmount.selector, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Vault.InvalidAmount.selector, 0));
         vm.prank(alice);
         sLyxToken.burn(alice, 0, "");
     }
