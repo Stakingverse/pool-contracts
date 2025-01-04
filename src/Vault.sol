@@ -24,6 +24,10 @@ interface IVault {
         uint256 previousTotalStaked, uint256 previousTotalUnstaked, uint256 totalStaked, uint256 totalUnstaked
     );
     event StakeTransferred(address indexed from, address indexed to, uint256 amount, bytes data);
+    event OperatorChanged(address previousOperator, address newOperator);
+    event VaultRestrictionChanged(bool restricted);
+    event AllowedListChanged(address indexed depositor, bool indexed allowed);
+    event ValidatorRegistered(bytes pubkey, bytes signature, bytes32 depositDataRoot);
 
     function depositLimit() external view returns (uint256);
     function totalAssets() external view returns (uint256);
@@ -154,6 +158,7 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
         if (newOperator == address(0)) {
             revert InvalidAddress(newOperator);
         }
+        emit OperatorChanged(operator, newOperator);
         operator = newOperator;
     }
 
@@ -206,6 +211,7 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
 
     function allowlist(address account, bool enabled) external onlyOperator {
         _allowlisted[account] = enabled;
+        emit AllowedListChanged(account, enabled);
     }
 
     function isAllowlisted(address account) public view returns (bool) {
@@ -214,6 +220,7 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
 
     function setRestricted(bool enabled) external onlyOperator {
         restricted = enabled;
+        emit VaultRestrictionChanged(enabled);
     }
 
     function _checkOracle() private view {
@@ -459,6 +466,7 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
         totalStaked += DEPOSIT_AMOUNT;
         totalUnstaked -= DEPOSIT_AMOUNT;
         bytes memory withdrawalCredentials = abi.encodePacked(hex"010000000000000000000000", address(this));
+        emit ValidatorRegistered(pubkey, signature, depositDataRoot);
         _depositContract.deposit{value: DEPOSIT_AMOUNT}(pubkey, withdrawalCredentials, signature, depositDataRoot);
     }
 
