@@ -2,7 +2,7 @@
 pragma solidity ^0.8.22;
 
 // Interfaces
-import {ITransparentUpgradeableProxy as IProxy} from
+import {ITransparentUpgradeableProxy as ITransparentProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
 import {ISLYX} from "./ISLYX.sol";
@@ -126,10 +126,21 @@ contract SLYXToken is
         virtual
         override
     {
-        if (to == address(this) || to == address(stakingVault) || to == IProxy(address(stakingVault)).implementation())
-        {
+        if (to == address(this) || to == address(stakingVault)) {
             revert InvalidRecipientForSLYXTokensTransfer(to);
         }
+
+        // Check we did not pass the Vault implementation / logic contract address
+        // Currently deployed Vault is implemented as a Transparent Upgradable Proxy (ERC1967)
+        // at address:
+        // The call to retrieve the implementation address is wrapped in a `try catch` block to prevent scenario
+        // where this assumption is broken, meaning another proxy pattern is used.
+        // If that is the case, the call would revert, preventing transfer of any tokens.
+        try ITransparentProxy(address(stakingVault)).implementation() returns (address implementation) {
+            if (to == implementation) {
+                revert InvalidRecipientForSLYXTokensTransfer(to);
+            }
+        } catch {}
     }
 
     /// @dev If tokens are being burnt:

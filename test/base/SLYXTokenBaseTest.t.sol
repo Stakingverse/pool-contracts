@@ -88,13 +88,13 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
     function _setUpSLYXToken(bool setDepositExtension) internal {
         depositContract = new MockDepositContract();
 
-        proxyAdmin = address(11);
+        proxyAdmin = address(1);
 
-        vaultOwner = address(12);
-        vaultOperator = address(13);
-        vaultOracle = address(14);
-        vaultFeeRecipient = address(15);
-        tokenContractOwner = address(16);
+        vaultOwner = address(2);
+        vaultOperator = address(3);
+        vaultOracle = address(4);
+        vaultFeeRecipient = address(5);
+        tokenContractOwner = address(6);
 
         // Vault contracts (proxy and implementation) are already deployed on mainnet
         // but we cannot mock these addresses in Foundry tests.
@@ -130,13 +130,17 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
         if (setDepositExtension) {
             autoMintExtension = address(new SLYXTokenAutoMintExtension(vault, sLyxToken));
 
-            bytes32 extensionDataKeyForDeposit =
-                LSP2Utils.generateMappingKey(_LSP17_EXTENSION_PREFIX, IVault.deposit.selector);
-
-            // set extension for `deposit(address)` selector, to allow minting sLYX tokens immediately while staking
-            vm.prank(tokenContractOwner);
-            sLyxToken.setData(extensionDataKeyForDeposit, abi.encodePacked(autoMintExtension));
+            _setupAutomintOnDepositExtension(autoMintExtension);
         }
+    }
+
+    function _setupAutomintOnDepositExtension(address autoMintSlyxExtension) internal {
+        bytes32 extensionDataKeyForDeposit =
+            LSP2Utils.generateMappingKey(_LSP17_EXTENSION_PREFIX, IVault.deposit.selector);
+
+        // set extension for `deposit(address)` selector, to allow minting sLYX tokens immediately while staking
+        vm.prank(tokenContractOwner);
+        sLyxToken.setData(extensionDataKeyForDeposit, abi.encodePacked(autoMintSlyxExtension));
     }
 
     function _depositAndClaimAllAsSLYXTokens(address user, uint256 depositAmount, bytes memory optionalData)
