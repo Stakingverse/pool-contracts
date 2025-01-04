@@ -91,7 +91,7 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
     uint256 public totalValidatorsRegistered;
     // Vault fee in parts per 100,000
     uint32 public fee;
-    // Recipient of the vault fee
+    // Address that can only call `claimFee()` to withdraw the fees collected by the Vault.
     address public feeRecipient;
     // Total amount of fees available for withdrawal
     uint256 public totalFees;
