@@ -58,11 +58,11 @@ contract LiquidStakingToken is
         stakingVault = stakingVault_;
     }
 
-    function pause() external onlyOwner whenNotPaused {
+    function pause() external onlyOwner {
         _pause();
     }
 
-    function unpause() external onlyOwner whenPaused {
+    function unpause() external onlyOwner {
         _unpause();
     }
 
