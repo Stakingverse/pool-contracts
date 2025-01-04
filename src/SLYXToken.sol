@@ -76,8 +76,10 @@ contract SLYXToken is
             revert OnlyVaultAllowedToMint(msg.sender);
         }
 
+        uint256 shares = Math.mulDiv(amount, stakingVault.totalShares(), stakingVault.totalAssets());
+
         // mint sLYX tokens for the `from` address
-        _mint({to: from, amount: amount, force: true, data: data});
+        _mint({to: from, amount: shares, force: true, data: data});
     }
 
     /// @dev Burning function that allows to convert sLYX back to LYX only when the contract is not paused.
