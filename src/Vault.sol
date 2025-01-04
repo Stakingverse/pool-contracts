@@ -166,9 +166,6 @@ contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, Paus
     }
 
     function setFee(uint32 newFee) external onlyOperator {
-        if (newFee > _FEE_BASIS) {
-            revert InvalidAmount(newFee);
-        }
         if (newFee < _MIN_FEE || newFee > _MAX_FEE) {
             revert InvalidAmount(newFee);
         }
