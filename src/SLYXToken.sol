@@ -16,6 +16,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 // Constants
 import {_LSP4_TOKEN_TYPE_TOKEN} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
+// Errors
 import {InvalidRecipientForSLYXTokensTransfer, OnlyVaultAllowedToMint, InvalidVaultAddress} from "./Errors.sol";
 
 // Token staking is a process that involves holding assets in a contract to support protocol operations such as market making.
@@ -48,10 +49,10 @@ contract SLYXToken is
         __Pausable_init();
 
         LSP7DigitalAssetInitAbstract._initialize({
-            name_: "Staked LYX",
+            name_: "Stakingverse Staked LYX (sLYX)",
             symbol_: "sLYX",
             newOwner_: tokenContractOwner_,
-            lsp4TokenType_: _LSP4_TOKEN_TYPE_TOKEN, // token
+            lsp4TokenType_: _LSP4_TOKEN_TYPE_TOKEN,
             isNonDivisible_: false
         });
 
@@ -66,8 +67,10 @@ contract SLYXToken is
         _unpause();
     }
 
-    /// @notice Mint new sLYX tokens when this callback hook is called by the linked staking vault.
-    /// @dev New sLYX minted can be monitored by listening for the `Transfer` event with operator being the vault.
+    /// @notice Mint new sLYX tokens by transferring LYX staked in the Vault to this SLYXToken contract.
+    /// @dev This hook is called when calling the `transferStake(address,uint256,bytes)` function on the linked staking vault. Only the linked vault can call this function.
+    /// New sLYX minted can be monitored by listening for the `Transfer` event on the SLYXToken contract and filtering with `address(0)` as `from`.
+    /// sLYX tokens can only be minted when the contract is not paused.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
             revert OnlyVaultAllowedToMint(msg.sender);
@@ -77,24 +80,29 @@ contract SLYXToken is
         _mint({to: from, amount: amount, force: true, data: data});
     }
 
-    /// @dev Burning function that allows to convert sLYX back to LYX only when the contract is not paused
+    /// @dev Burning function that allows to convert sLYX back to LYX only when the contract is not paused.
     function burn(address from, uint256 amount, bytes memory data) public virtual override whenNotPaused {
         super.burn(from, amount, data);
     }
 
-    /// @dev Calculate the amount of LYX backing an amount of sLYX
+    /// @dev Calculate the amount of LYX backing an amount of sLYX.
+    ///
+    /// Formula:
+    /// (sLYX amount * total stake held by sLYX contract in Vault) / total sLYX minted
     function getNativeTokenValue(uint256 sLyxAmount) public view returns (uint256) {
         // Get the total number of sLYX tokens minted.
         uint256 totalSLYXMinted = totalSupply();
-        // Get the total LYX balance held by the sLYX contract on the Vault
+        // Get the total LYX balance held by the sLYX contract on the Vault.
         uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
 
-        // Calculate how many % the amount being burnt in proportion to the total supply
-        // (sLyxAmount * sLyxTokenContractStake) / totalSLYXMinted
+        // Calculate how many % the amount being burnt in proportion to the total supply.
         return sLyxAmount.mulDiv(sLyxTokenContractStake, totalSLYXMinted);
     }
 
-    /// @dev Calculate the amount of sLYX backed by an amount of LYX
+    /// @dev Calculate the amount of sLYX backed by an amount of LYX.
+    ///
+    /// Formula:
+    /// (LYX amount * total sLYX minted) / total stake held by sLYX contract in Vault
     function getSLYXTokenValue(uint256 lyxAmount) public view returns (uint256) {
         uint256 totalSLYXMinted = totalSupply();
         uint256 sLYXTokenContractStake = stakingVault.balanceOf(address(this));
@@ -112,7 +120,7 @@ contract SLYXToken is
         return interfaceId == type(IVaultStakeRecipient).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    /// @dev cannot transfer sLYX to the Vault itself or the SLYX Token contract itself otherwise they would get stuck.
+    /// @dev Cannot transfer sLYX to the Vault itself or the SLYX Token contract itself otherwise they would get stuck.
     function _beforeTokenTransfer(address, /* from */ address to, uint256, /* amount */ bytes memory /* data */ )
         internal
         virtual
@@ -125,20 +133,24 @@ contract SLYXToken is
     }
 
     /// @dev If tokens are being burnt:
-    /// 1. convert `amount` of sLyx to the equivalent amount as LYX stake in the linked staking vault (including any proportion of accrued rewards).
-    /// 2. transfer this equivalent amount back as stake LYX to `from`.
+    /// 1. convert `amount` of sLYX to the equivalent amount as LYX staked in the linked staking vault (including any accrued rewards).
+    /// 2. transfer this equivalent amount back as staked LYX to `from`.
     ///
     /// This is based on the sLYX / staked LYX ratio. The function accepts rounding error of 1 Wei as loss.
+    /// Note that the `transferStake` call is done in this hook after balances and total supply have been decreased
+    /// to follow the check-effect-interaction pattern as best practice.
     function _afterTokenTransfer(address from, address to, uint256 amount, bytes memory data)
         internal
         virtual
         override
     {
-        // if we are burning sLYX tokens, re-transfer stake to user
+        // if we are burning sLYX tokens, re-transfer stake to `from`
         if (to == address(0)) {
             // Calculate the number of LYX that should be transferred back to the user for burning its tokens
-
             uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
+
+            // Since we are in the `_afterTokenTransfer` hook, balances and total supply have already been decreased.
+            // We need to account the burnt amount in the total supply for the calculation.
             uint256 totalSLYXMintedBeforeBurning = totalSupply() + amount;
 
             uint256 sLyxAmountAsLyxStake = amount.mulDiv(sLyxTokenContractStake, totalSLYXMintedBeforeBurning);

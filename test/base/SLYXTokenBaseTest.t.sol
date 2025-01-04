@@ -7,7 +7,10 @@ import {Test, console} from "forge-std/Test.sol";
 // Testing + Setups
 import {IVault, Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
-import {TransparentUpgradeableProxy, ITransparentUpgradeableProxy as IProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    TransparentUpgradeableProxy,
+    ITransparentUpgradeableProxy as IProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 // Libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
@@ -85,13 +88,13 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
     function _setUpSLYXToken(bool setDepositExtension) internal {
         depositContract = new MockDepositContract();
 
-        proxyAdmin = address(1);
+        proxyAdmin = address(11);
 
-        vaultOwner = address(2);
-        vaultOperator = address(3);
-        vaultOracle = address(4);
-        vaultFeeRecipient = address(5);
-        tokenContractOwner = address(6);
+        vaultOwner = address(12);
+        vaultOperator = address(13);
+        vaultOracle = address(14);
+        vaultFeeRecipient = address(15);
+        tokenContractOwner = address(16);
 
         // Vault contracts (proxy and implementation) are already deployed on mainnet
         // but we cannot mock these addresses in Foundry tests.
@@ -100,25 +103,14 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
         // Therefore, we need to deploy the new Vault contracts in the test suite.
         vaultImplementation = new Vault();
 
-        bytes memory initializeCalldata = abi.encodeCall(
-            Vault.initialize,
-            (vaultOwner, vaultOperator, depositContract)
-        );
+        bytes memory initializeCalldata = abi.encodeCall(Vault.initialize, (vaultOwner, vaultOperator, depositContract));
 
         vault = Vault(
-            payable(
-                new TransparentUpgradeableProxy(
-                    address(vaultImplementation),
-                    proxyAdmin,
-                    initializeCalldata
-                )
-            )
+            payable(new TransparentUpgradeableProxy(address(vaultImplementation), proxyAdmin, initializeCalldata))
         );
 
         vm.mockCall(
-            address(vault),
-            abi.encodeWithSelector(IProxy.implementation.selector),
-            abi.encode(vaultImplementation)
+            address(vault), abi.encodeWithSelector(IProxy.implementation.selector), abi.encode(vaultImplementation)
         );
 
         vm.startPrank(vaultOperator);
@@ -130,42 +122,27 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
 
         sLyxTokenImplementation = new SLYXToken();
 
-        sLyxToken = SLYXToken(
-            payable(
-                new TransparentUpgradeableProxy(
-                    address(sLyxTokenImplementation),
-                    proxyAdmin,
-                    ""
-                )
-            )
-        );
+        sLyxToken =
+            SLYXToken(payable(new TransparentUpgradeableProxy(address(sLyxTokenImplementation), proxyAdmin, "")));
 
         sLyxToken.initialize(tokenContractOwner, vault);
 
         if (setDepositExtension) {
-            autoMintExtension = address(
-                new SLYXTokenAutoMintExtension(vault, sLyxToken)
-            );
+            autoMintExtension = address(new SLYXTokenAutoMintExtension(vault, sLyxToken));
 
-            bytes32 extensionDataKeyForDeposit = LSP2Utils.generateMappingKey(
-                _LSP17_EXTENSION_PREFIX,
-                IVault.deposit.selector
-            );
+            bytes32 extensionDataKeyForDeposit =
+                LSP2Utils.generateMappingKey(_LSP17_EXTENSION_PREFIX, IVault.deposit.selector);
 
             // set extension for `deposit(address)` selector, to allow minting sLYX tokens immediately while staking
             vm.prank(tokenContractOwner);
-            sLyxToken.setData(
-                extensionDataKeyForDeposit,
-                abi.encodePacked(autoMintExtension)
-            );
+            sLyxToken.setData(extensionDataKeyForDeposit, abi.encodePacked(autoMintExtension));
         }
     }
 
-    function _depositAndClaimAllAsSLYXTokens(
-        address user,
-        uint256 depositAmount,
-        bytes memory optionalData
-    ) internal returns (uint256 sLyxTokenContractBalanceInVault) {
+    function _depositAndClaimAllAsSLYXTokens(address user, uint256 depositAmount, bytes memory optionalData)
+        internal
+        returns (uint256 sLyxTokenContractBalanceInVault)
+    {
         // prevent `_toShare` in the Vault to return 0
         vm.assume(depositAmount >= 1_000 wei);
 

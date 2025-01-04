@@ -4,7 +4,12 @@ pragma solidity ^0.8.13;
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Constants
-import {_LSP4_TOKEN_TYPE_TOKEN, _LSP4_TOKEN_NAME_KEY, _LSP4_TOKEN_SYMBOL_KEY, _LSP4_TOKEN_TYPE_KEY} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
+import {
+    _LSP4_TOKEN_TYPE_TOKEN,
+    _LSP4_TOKEN_NAME_KEY,
+    _LSP4_TOKEN_SYMBOL_KEY,
+    _LSP4_TOKEN_TYPE_KEY
+} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
 /// @title Deployment Tests
 // ------------------------
@@ -15,24 +20,17 @@ contract Deployment is SLYXTokenBaseTest {
 
     function test_deploymentParametersOfSLYXToken() public view {
         // We need to re-encode in memory, as in the ERC725Y storage, strings are not stored as [string.length][string]
-        bytes memory encodedName = abi.encode(
-            sLyxToken.getData(_LSP4_TOKEN_NAME_KEY)
-        );
+        bytes memory encodedName = abi.encode(sLyxToken.getData(_LSP4_TOKEN_NAME_KEY));
         string memory name = abi.decode(encodedName, (string));
 
-        bytes memory encodedSymbol = abi.encode(
-            sLyxToken.getData(_LSP4_TOKEN_SYMBOL_KEY)
-        );
+        bytes memory encodedSymbol = abi.encode(sLyxToken.getData(_LSP4_TOKEN_SYMBOL_KEY));
         string memory symbol = abi.decode(encodedSymbol, (string));
 
-        uint256 tokenType = abi.decode(
-            sLyxToken.getData(_LSP4_TOKEN_TYPE_KEY),
-            (uint256)
-        );
+        uint256 tokenType = abi.decode(sLyxToken.getData(_LSP4_TOKEN_TYPE_KEY), (uint256));
         uint256 decimals = sLyxToken.decimals();
         address owner = sLyxToken.owner();
 
-        assertEq(name, "Staked LYX");
+        assertEq(name, "Stakingverse Staked LYX (sLYX)");
         assertEq(symbol, "sLYX");
         assertEq(tokenType, _LSP4_TOKEN_TYPE_TOKEN);
         assertEq(decimals, 18);

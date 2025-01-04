@@ -7,7 +7,13 @@ import {Vault, IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
 
 // errors
 import {LSP7CannotSendWithAddressZero} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
-import {InvalidVaultAddress, InvalidSLYXTokenAddress, OnlyCallableBySLYXTokenContract, InvalidRecipientForSLYXTokensTransfer, LSP17AutoMintExtensionCannotHoldVaultStake} from "../src/Errors.sol";
+import {
+    InvalidVaultAddress,
+    InvalidSLYXTokenAddress,
+    OnlyCallableBySLYXTokenContract,
+    InvalidRecipientForSLYXTokensTransfer,
+    LSP17AutoMintExtensionCannotHoldVaultStake
+} from "../src/Errors.sol";
 
 // tests
 import {SLYXTokenAutoMintExtension} from "../src/SLYXTokenAutoMintExtension.sol";
@@ -24,33 +30,19 @@ contract DepositExtension is SLYXTokenBaseTest {
         address vaultPlaceholderAddress = address(0);
         address sLYXTokenContractAddress = makeAddr("sLYXTokenContractAddress");
 
-        vm.expectRevert(
-            abi.encodeWithSelector(InvalidVaultAddress.selector, address(0))
-        );
-        new SLYXTokenAutoMintExtension(
-            IVault(vaultPlaceholderAddress),
-            ILSP7(sLYXTokenContractAddress)
-        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidVaultAddress.selector, address(0)));
+        new SLYXTokenAutoMintExtension(IVault(vaultPlaceholderAddress), ILSP7(sLYXTokenContractAddress));
     }
 
     function test_cannotDeployExtensionWithAddressZeroAsSLYXToken() public {
         address vaultPlaceholderAddress = makeAddr("vault");
         address sLYXTokenContractAddress = address(0);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(InvalidSLYXTokenAddress.selector, address(0))
-        );
-        new SLYXTokenAutoMintExtension(
-            IVault(vaultPlaceholderAddress),
-            ILSP7(sLYXTokenContractAddress)
-        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidSLYXTokenAddress.selector, address(0)));
+        new SLYXTokenAutoMintExtension(IVault(vaultPlaceholderAddress), ILSP7(sLYXTokenContractAddress));
     }
 
-    function test_shouldAllowDepositDirectlyToSLYXTokenContract()
-        public
-        beforeTest(10_000 ether)
-        makeInitialDeposit
-    {
+    function test_shouldAllowDepositDirectlyToSLYXTokenContract() public beforeTest(10_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 amount = 100 ether;
         vm.deal(alice, amount);
@@ -59,15 +51,10 @@ contract DepositExtension is SLYXTokenBaseTest {
         assertEq(sLyxToken.totalSupply(), 0);
         assertEq(sLyxToken.balanceOf(alice), 0);
 
-        bytes memory depositCalldata = abi.encodeWithSelector(
-            vault.deposit.selector,
-            alice
-        );
+        bytes memory depositCalldata = abi.encodeWithSelector(vault.deposit.selector, alice);
 
         vm.prank(alice);
-        (bool success, ) = address(sLyxToken).call{value: amount}(
-            depositCalldata
-        );
+        (bool success,) = address(sLyxToken).call{value: amount}(depositCalldata);
         assertTrue(success);
 
         assertEq(vault.totalUnstaked(), _VAULT_INITIAL_DEPOSIT + amount);
@@ -76,19 +63,12 @@ contract DepositExtension is SLYXTokenBaseTest {
         assertEq(vault.sharesOf(address(sLyxToken)), amount);
 
         assertEq(sLyxToken.totalSupply(), vault.sharesOf(address(sLyxToken)));
-        assertEq(
-            sLyxToken.balanceOf(alice),
-            vault.sharesOf(address(sLyxToken))
-        );
+        assertEq(sLyxToken.balanceOf(alice), vault.sharesOf(address(sLyxToken)));
 
         assertEq(autoMintExtension.balance, 0);
     }
 
-    function test_shouldEmitTheRightEvents()
-        public
-        beforeTest(10_000 ether)
-        makeInitialDeposit
-    {
+    function test_shouldEmitTheRightEvents() public beforeTest(10_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 amount = 100 ether;
         hoax(alice, amount);
@@ -139,39 +119,29 @@ contract DepositExtension is SLYXTokenBaseTest {
     }
 
     /// @dev Fuzz alice address to find exceptions
-    function test_onlySLYXTokenContractCanCallExtension(
-        address anyAddress
-    ) public beforeTest(10_000 ether) makeInitialDeposit {
+    function test_onlySLYXTokenContractCanCallExtension(address anyAddress)
+        public
+        beforeTest(10_000 ether)
+        makeInitialDeposit
+    {
         vm.assume(anyAddress != address(sLyxToken));
+
+        bytes memory depositCalldata = abi.encodeWithSelector(vault.deposit.selector, anyAddress);
 
         uint256 amount = 100 ether;
         vm.deal(anyAddress, amount);
 
-        bytes memory depositCalldata = abi.encodeWithSelector(
-            vault.deposit.selector,
-            anyAddress
-        );
-
         // Test revert with function call
         vm.prank(anyAddress);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OnlyCallableBySLYXTokenContract.selector,
-                anyAddress
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(OnlyCallableBySLYXTokenContract.selector, anyAddress));
         IVault(address(autoMintExtension)).deposit{value: amount}(anyAddress);
 
         // Test as low level call
         vm.prank(anyAddress);
-        (bool success, bytes memory revertData) = address(autoMintExtension)
-            .call{value: amount}(depositCalldata);
+        (bool success, bytes memory revertData) = address(autoMintExtension).call{value: amount}(depositCalldata);
         assertFalse(success);
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(
-            OnlyCallableBySLYXTokenContract.selector,
-            anyAddress
-        );
+        bytes memory expectedRevertData = abi.encodeWithSelector(OnlyCallableBySLYXTokenContract.selector, anyAddress);
         assertEq(revertData, expectedRevertData);
     }
 
@@ -184,15 +154,10 @@ contract DepositExtension is SLYXTokenBaseTest {
         uint256 amount = 100 ether;
         vm.deal(alice, amount);
 
-        bytes memory depositCalldata = abi.encodeWithSelector(
-            vault.deposit.selector,
-            address(sLyxToken)
-        );
+        bytes memory depositCalldata = abi.encodeWithSelector(vault.deposit.selector, address(sLyxToken));
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(
-            InvalidRecipientForSLYXTokensTransfer.selector,
-            address(sLyxToken)
-        );
+        bytes memory expectedRevertData =
+            abi.encodeWithSelector(InvalidRecipientForSLYXTokensTransfer.selector, address(sLyxToken));
 
         // Test revert with function call
         vm.prank(alice);
@@ -201,9 +166,7 @@ contract DepositExtension is SLYXTokenBaseTest {
 
         // Test as low level call
         vm.prank(alice);
-        (bool success, bytes memory revertData) = address(sLyxToken).call{
-            value: amount
-        }(depositCalldata);
+        (bool success, bytes memory revertData) = address(sLyxToken).call{value: amount}(depositCalldata);
         assertFalse(success);
         assertEq(revertData, expectedRevertData);
     }
@@ -216,10 +179,7 @@ contract DepositExtension is SLYXTokenBaseTest {
         address alice = makeAddr("alice");
         vm.deal(alice, 10 ether); // still fund the account even if it will not deposit any
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(
-            Vault.InvalidAmount.selector,
-            0
-        );
+        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAmount.selector, 0);
 
         vm.prank(alice);
         vm.expectRevert(expectedRevertData);
@@ -234,26 +194,22 @@ contract DepositExtension is SLYXTokenBaseTest {
         address alice = makeAddr("alice");
         uint256 amount = 10 ether;
 
-        bytes memory expectedRevertData = abi.encodePacked(
-            LSP7CannotSendWithAddressZero.selector
-        );
+        bytes memory expectedRevertData = abi.encodePacked(LSP7CannotSendWithAddressZero.selector);
 
         hoax(alice, amount);
         vm.expectRevert(expectedRevertData);
         IVault(address(sLyxToken)).deposit{value: amount}(address(0));
     }
 
-    function test_cannotMintSLYXTokensViaExtensionIfAmountIsOverDepositLimit(
-        uint256 amount
-    ) public beforeTest(1_000_000 ether) {
+    function test_cannotMintSLYXTokensViaExtensionIfAmountIsOverDepositLimit(uint256 amount)
+        public
+        beforeTest(1_000_000 ether)
+    {
         vm.assume(amount > 1_000_000 ether);
         address alice = makeAddr("alice");
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(
-            Vault.DepositLimitExceeded.selector,
-            amount,
-            1_000_000 ether
-        );
+        bytes memory expectedRevertData =
+            abi.encodeWithSelector(Vault.DepositLimitExceeded.selector, amount, 1_000_000 ether);
 
         hoax(alice, amount);
         vm.expectRevert(expectedRevertData);
