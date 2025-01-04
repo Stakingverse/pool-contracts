@@ -5,7 +5,7 @@ pragma solidity ^0.8.22;
 import {ITransparentUpgradeableProxy as IProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IVault, IVaultStakeRecipient} from "UniversalPage-contracts/src/pool/Vault.sol";
-import {ILiquidStakingToken} from "./ILiquidStakingToken.sol";
+import {ISLYX} from "./ISLYX.sol";
 
 // Modules
 import {LSP7DigitalAssetInitAbstract} from "@lukso/lsp7-contracts/contracts/LSP7DigitalAssetInitAbstract.sol";
@@ -16,7 +16,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 // Constants
 import {_LSP4_TOKEN_TYPE_TOKEN} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
-import {InvalidRecipientForLSTTokensTransfer, OnlyVaultAllowedToMint, InvalidVaultAddress} from "./Errors.sol";
+import {InvalidRecipientForSLYXTokensTransfer, OnlyVaultAllowedToMint, InvalidVaultAddress} from "./Errors.sol";
 
 // Token staking is a process that involves holding assets in a contract to support protocol operations such as market making.
 // In exchange, the asset holders are rewarded with tokens which could be of the same type that they deposited, or not.
@@ -25,9 +25,9 @@ import {InvalidRecipientForLSTTokensTransfer, OnlyVaultAllowedToMint, InvalidVau
 // They can withdraw their stake at any time, but rewards stop accruing for them.
 // It is a permissionless contract that will distribute rewards during an interval defined on deployment. That is all that it is
 /// @dev For depositing native tokens
-contract LiquidStakingToken is
+contract SLYXToken is
     IVaultStakeRecipient,
-    ILiquidStakingToken,
+    ISLYX,
     LSP7DigitalAssetInitAbstract,
     LSP7BurnableInitAbstract,
     PausableUpgradeable
@@ -66,14 +66,14 @@ contract LiquidStakingToken is
         _unpause();
     }
 
-    /// @notice Mint new LST tokens when this callback hook is called by the linked staking vault.
-    /// @dev New LST minted can be monitored by listening for the `Transfer` event with operator being the vault.
+    /// @notice Mint new sLYX tokens when this callback hook is called by the linked staking vault.
+    /// @dev New sLYX minted can be monitored by listening for the `Transfer` event with operator being the vault.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
             revert OnlyVaultAllowedToMint(msg.sender);
         }
 
-        // mint LST tokens for the `from`
+        // mint sLYX tokens for the `from` address
         _mint({to: from, amount: amount, force: true, data: data});
     }
 
@@ -84,22 +84,22 @@ contract LiquidStakingToken is
 
     /// @dev Calculate the amount of LYX backing an amount of sLYX
     function getNativeTokenValue(uint256 sLyxAmount) public view returns (uint256) {
-        // Get the total number of LST tokens minted.
+        // Get the total number of sLYX tokens minted.
         uint256 totalSLYXMinted = totalSupply();
-        // Get the total LYX balance held by the LST contract on the Vault
-        uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
+        // Get the total LYX balance held by the sLYX contract on the Vault
+        uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
 
         // Calculate how many % the amount being burnt in proportion to the total supply
-        // (sLyxAmount * lstTokenContractStake) / totalSLYXMinted
-        return sLyxAmount.mulDiv(lstTokenContractStake, totalSLYXMinted);
+        // (sLyxAmount * sLyxTokenContractStake) / totalSLYXMinted
+        return sLyxAmount.mulDiv(sLyxTokenContractStake, totalSLYXMinted);
     }
 
     /// @dev Calculate the amount of sLYX backed by an amount of LYX
-    function getLiquidStakingTokenValue(uint256 lyxAmount) public view returns (uint256) {
+    function getSLYXTokenValue(uint256 lyxAmount) public view returns (uint256) {
         uint256 totalSLYXMinted = totalSupply();
-        uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
+        uint256 sLYXTokenContractStake = stakingVault.balanceOf(address(this));
 
-        return lyxAmount.mulDiv(totalSLYXMinted, lstTokenContractStake);
+        return lyxAmount.mulDiv(totalSLYXMinted, sLYXTokenContractStake);
     }
 
     /// @dev Get the current LYX / sLYX exchange rate
@@ -112,7 +112,7 @@ contract LiquidStakingToken is
         return interfaceId == type(IVaultStakeRecipient).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    /// @dev cannot transfer sLYX to the Vault itself or the LST contract itself otherwise they would get stuck.
+    /// @dev cannot transfer sLYX to the Vault itself or the SLYX Token contract itself otherwise they would get stuck.
     function _beforeTokenTransfer(address, /* from */ address to, uint256, /* amount */ bytes memory /* data */ )
         internal
         virtual
@@ -120,7 +120,7 @@ contract LiquidStakingToken is
     {
         if (to == address(this) || to == address(stakingVault) || to == IProxy(address(stakingVault)).implementation())
         {
-            revert InvalidRecipientForLSTTokensTransfer(to);
+            revert InvalidRecipientForSLYXTokensTransfer(to);
         }
     }
 
@@ -134,16 +134,16 @@ contract LiquidStakingToken is
         virtual
         override
     {
-        // if we are burning LST tokens, re-transfer stake to user
+        // if we are burning sLYX tokens, re-transfer stake to user
         if (to == address(0)) {
             // Calculate the number of LYX that should be transferred back to the user for burning its tokens
 
-            uint256 lstTokenContractStake = stakingVault.balanceOf(address(this));
+            uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
             uint256 totalSLYXMintedBeforeBurning = totalSupply() + amount;
 
-            uint256 lstAmountAsLyxStake = amount.mulDiv(lstTokenContractStake, totalSLYXMintedBeforeBurning);
+            uint256 sLyxAmountAsLyxStake = amount.mulDiv(sLyxTokenContractStake, totalSLYXMintedBeforeBurning);
 
-            stakingVault.transferStake(from, lstAmountAsLyxStake, data);
+            stakingVault.transferStake(from, sLyxAmountAsLyxStake, data);
         }
     }
 }

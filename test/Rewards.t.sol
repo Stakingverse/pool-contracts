@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 // Testing
-import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
+import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Helpers
 import {IVault} from "UniversalPage-contracts/src/pool/Vault.sol";
@@ -14,26 +14,33 @@ import {MockDepositContract} from "./mocks/MockDepositContract.sol";
 
 /// @title Testing sLYX / LYX rate after accrued rewards
 // -----------------------------------------------------
-contract Rewards is LiquidStakingTokenBaseTest {
+contract Rewards is SLYXTokenBaseTest {
     uint256 constant _VALIDATOR_REWARDS = 10 ether;
 
-    function _calculateProportionRewards(uint256 stake, uint256 totalStake, uint256 rewardsAfterFees)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _calculateProportionRewards(
+        uint256 stake,
+        uint256 totalStake,
+        uint256 rewardsAfterFees
+    ) internal pure returns (uint256) {
         uint256 percentage = Math.mulDiv(stake, 1e18, totalStake);
 
-        uint256 proportionRewards = Math.mulDiv(percentage, rewardsAfterFees, 1e18);
+        uint256 proportionRewards = Math.mulDiv(
+            percentage,
+            rewardsAfterFees,
+            1e18
+        );
 
         return proportionRewards;
     }
 
     function setUp() public {
-        _setUpLiquidStakingToken({setDepositExtension: false});
+        _setUpSLYXToken({setDepositExtension: false});
     }
 
-    function test_shouldRetrieveMoreLSTWhenBurningLSTAndRewardsAccruedStake() public beforeTest(100 ether) {
+    function test_shouldRetrieveMoreLYXWhenBurningSLYXTokensAndRewardsAccruedStake()
+        public
+        beforeTest(100 ether)
+    {
         address alice = makeAddr("alice");
         hoax(alice);
         vault.deposit{value: 32 ether}(alice);
@@ -41,7 +48,10 @@ contract Rewards is LiquidStakingTokenBaseTest {
         assertEq(vault.totalStaked(), 0);
         assertEq(vault.totalUnstaked(), 32 ether);
         assertEq(vault.totalAssets(), 32 ether);
-        assertEq(vault.balanceOf(alice), 32 ether - vault.balanceOf(address(0)));
+        assertEq(
+            vault.balanceOf(alice),
+            32 ether - vault.balanceOf(address(0))
+        );
         assertEq(vault.totalValidatorsRegistered(), 0);
         assertEq(address(vault).balance, 32 ether);
 
@@ -58,14 +68,18 @@ contract Rewards is LiquidStakingTokenBaseTest {
         // alice converts its stake in Liquid Staking tokens
         uint256 aliceBalance = vault.balanceOf(alice);
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), aliceBalance, "");
+        vault.transferStake(address(sLyxToken), aliceBalance, "");
 
         // simulate rewards +10 ethers
         vm.deal(address(vault), 10 ether);
 
         vm.prank(vaultOracle);
         vm.expectEmit(address(vault));
-        emit IVault.RewardsDistributed({balance: 32 ether, rewards: 10 ether, fee: 1 ether});
+        emit IVault.RewardsDistributed({
+            balance: 32 ether,
+            rewards: 10 ether,
+            fee: 1 ether
+        });
         vm.expectEmit(address(vault));
         emit IVault.Rebalanced({
             previousTotalStaked: 32 ether,
@@ -78,18 +92,28 @@ contract Rewards is LiquidStakingTokenBaseTest {
         assertEq(address(vault).balance, 10 ether);
         assertEq(vault.totalFees(), 1 ether);
 
-        uint256 lstContractBalance = vault.balanceOf(address(liquidStakingToken));
+        uint256 sLyxTokenContractBalance = vault.balanceOf(address(sLyxToken));
 
-        // Burn the LST and see if the balance increased
+        // Burn the sLYX tokens and see if the balance increased
         vm.prank(alice);
-        liquidStakingToken.burn(alice, aliceBalance, "");
+        sLyxToken.burn(alice, aliceBalance, "");
 
         /// @dev There is a remainder / difference of 1 wei accepted as rounding error
-        assertEq(vault.balanceOf(address(liquidStakingToken)), VAULT_ROUNDING_ERROR_LOSS);
-        assertEq(vault.balanceOf(alice), lstContractBalance - VAULT_ROUNDING_ERROR_LOSS);
+        assertEq(
+            vault.balanceOf(address(sLyxToken)),
+            VAULT_ROUNDING_ERROR_LOSS
+        );
+        assertEq(
+            vault.balanceOf(alice),
+            sLyxTokenContractBalance - VAULT_ROUNDING_ERROR_LOSS
+        );
     }
 
-    function test_TwoUsersDepositAndBurnLSTAfterAccruedReward() public beforeTest(1_000_000 ether) makeInitialDeposit {
+    function test_TwoUsersDepositAndBurnSLYXTokensAfterAccruedReward()
+        public
+        beforeTest(1_000_000 ether)
+        makeInitialDeposit
+    {
         address alice = makeAddr("alice");
         hoax(alice, 40 ether);
         vault.deposit{value: 40 ether}(alice);
@@ -127,22 +151,25 @@ contract Rewards is LiquidStakingTokenBaseTest {
 
         // users convert their shares into Liquid Staking tokens
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), aliceStake, "");
-        assertEq(liquidStakingToken.balanceOf(alice), aliceStake);
+        vault.transferStake(address(sLyxToken), aliceStake, "");
+        assertEq(sLyxToken.balanceOf(alice), aliceStake);
         assertEq(vault.balanceOf(alice), 0);
 
         vm.prank(bob);
-        vault.transferStake(address(liquidStakingToken), bobStake, "");
-        assertEq(liquidStakingToken.balanceOf(bob), bobStake);
+        vault.transferStake(address(sLyxToken), bobStake, "");
+        assertEq(sLyxToken.balanceOf(bob), bobStake);
         assertEq(vault.balanceOf(bob), 0);
 
-        assertEq(vault.balanceOf(address(liquidStakingToken)), aliceStake + bobStake);
+        assertEq(vault.balanceOf(address(sLyxToken)), aliceStake + bobStake);
 
         // Simulate +10 LYX rewards
         vm.deal(address(vault), _VALIDATOR_REWARDS + vault.totalUnstaked());
 
         uint256 expectedFeeAmount = Math.mulDiv( // vault.fee() % of 10 LYX
-        _VALIDATOR_REWARDS, vault.fee(), _VAULT_FEE_BASIS);
+            _VALIDATOR_REWARDS,
+            vault.fee(),
+            _VAULT_FEE_BASIS
+        );
         assertEq(expectedFeeAmount, 1 ether);
         uint256 rewardsAfterFees = _VALIDATOR_REWARDS - expectedFeeAmount; // 10 LYX rewards - 1 LYX fee
 
@@ -162,60 +189,75 @@ contract Rewards is LiquidStakingTokenBaseTest {
         });
         vault.rebalance();
 
-        assertEq(address(vault).balance, _VALIDATOR_REWARDS + 4 ether + zeroAddressBalance);
+        assertEq(
+            address(vault).balance,
+            _VALIDATOR_REWARDS + 4 ether + zeroAddressBalance
+        );
         assertEq(vault.totalFees(), expectedFeeAmount);
 
-        // Calculate proportion of rewards owned by the Liquid Staking Token
-        // meaning all the combined users that made their stake liquid by minting LSTs.
-        uint256 proportionRewardsForLST = _calculateProportionRewards({
-            stake: aliceStake + bobStake,
-            totalStake: aliceStake + bobStake + 1_000 wei,
-            rewardsAfterFees: rewardsAfterFees
-        });
+        // Calculate proportion of rewards owned by the SLYX Token contract
+        // meaning all the combined users that made their stake liquid by minting sLYX tokens.
+        uint256 proportionRewardsForSLYXTokenContract = _calculateProportionRewards({
+                stake: aliceStake + bobStake,
+                totalStake: aliceStake + bobStake + 1_000 wei,
+                rewardsAfterFees: rewardsAfterFees
+            });
 
         // We then calculate below from this proportion how much rewards Alice and Bob
-        // are allocated to Alice and Bob, if they would burn their Liquid Staking token.
+        // are allocated to Alice and Bob, if they would burn their sLYX tokens.
 
         // block scope to clear the stack and avoid stack too deep errors
         {
-            uint256 expectedLSTContractBalanceAfterRewards = aliceStake + bobStake + proportionRewardsForLST;
-            assertEq(vault.balanceOf(address(liquidStakingToken)), expectedLSTContractBalanceAfterRewards);
+            uint256 expectedSLYXTokenContractBalanceAfterRewards = aliceStake +
+                bobStake +
+                proportionRewardsForSLYXTokenContract;
+            assertEq(
+                vault.balanceOf(address(sLyxToken)),
+                expectedSLYXTokenContractBalanceAfterRewards
+            );
 
             // Keep a minimum number of variables on the stack using a block scope (prevents stack too deep error)
             {
-                uint256 proportionRewardsForZeroAddress = rewardsAfterFees - proportionRewardsForLST;
+                uint256 proportionRewardsForZeroAddress = rewardsAfterFees -
+                    proportionRewardsForSLYXTokenContract;
 
                 assertEq(
-                    vault.balanceOf(address(0)), 1_000 wei + proportionRewardsForZeroAddress - VAULT_ROUNDING_ERROR_LOSS
+                    vault.balanceOf(address(0)),
+                    1_000 wei +
+                        proportionRewardsForZeroAddress -
+                        VAULT_ROUNDING_ERROR_LOSS
                 );
             }
         }
 
-        // Both users burn the LST. Calculate that the stake given back includes rewards
+        // Both users burn their sLYX tokens. Calculate that the stake given back includes rewards
 
         // Calculate exactly how much rewards were given to Alice and Bob.
         // To make sure both logics work in the Vault and the Liquid Staking Token,
         // we compare the result against:
-        // - the conversion function before burning the LST -> via `LST.getNativeTokenValue(...)`
-        // - alice's stake after burning its LST -> via `vault.balanceOf(...)`)
+        // - the conversion function before burning the sLYX tokens -> via `sLyxToken.getNativeTokenValue(...)`
+        // - alice's stake after burning its sLYX tokens -> via `vault.balanceOf(...)`)
         // This result should be the same for both functions.
         // The conversion function should work to include the accrued rewards.
         {
-            uint256 aliceNativeTokenValueBeforeBurning = liquidStakingToken.getNativeTokenValue(aliceStake);
+            uint256 aliceNativeTokenValueBeforeBurning = sLyxToken
+                .getNativeTokenValue(aliceStake);
 
             vm.prank(alice);
-            liquidStakingToken.burn(alice, aliceStake, "");
-            assertEq(liquidStakingToken.balanceOf(alice), 0);
+            sLyxToken.burn(alice, aliceStake, "");
+            assertEq(sLyxToken.balanceOf(alice), 0);
 
             uint256 proportionRewardsForAlice = _calculateProportionRewards({
                 stake: aliceStake,
                 totalStake: aliceStake + bobStake,
-                rewardsAfterFees: proportionRewardsForLST
+                rewardsAfterFees: proportionRewardsForSLYXTokenContract
             });
 
             assertEq(
                 vault.balanceOf(alice) + VAULT_ROUNDING_ERROR_LOSS,
-                aliceStake + proportionRewardsForAlice - VAULT_ROUNDING_ERROR_LOSS
+                aliceStake +
+                    proportionRewardsForAlice -
+                    VAULT_ROUNDING_ERROR_LOSS
             );
 
             assertEq(
@@ -225,7 +267,7 @@ contract Rewards is LiquidStakingTokenBaseTest {
         }
     }
 
-    function test_depositOnBehalfOfLSTContractAndInflateProportionOfRewards()
+    function test_depositOnBehalfOfSLYXTokenContractAddressAndInflateProportionOfRewards()
         public
         beforeTest(5_000 ether)
         makeInitialDeposit
@@ -238,8 +280,16 @@ contract Rewards is LiquidStakingTokenBaseTest {
 
         // 1. both deposit 50 LYX each
         // 2. both convert as sLYX
-        uint256 aliceStake = _depositAndClaimAllAsLiquidStakingTokens(alice, depositAmount, "");
-        uint256 bobStake = _depositAndClaimAllAsLiquidStakingTokens(bob, depositAmount, "");
+        uint256 aliceStake = _depositAndClaimAllAsSLYXTokens(
+            alice,
+            depositAmount,
+            ""
+        );
+        uint256 bobStake = _depositAndClaimAllAsSLYXTokens(
+            bob,
+            depositAmount,
+            ""
+        );
 
         vm.startPrank(vaultOracle);
         vault.registerValidator(hex"1111", hex"1111", bytes32(0));
@@ -255,7 +305,10 @@ contract Rewards is LiquidStakingTokenBaseTest {
         vm.deal(address(vault), validatorRewards + vault.totalUnstaked());
 
         uint256 expectedFeeAmount = Math.mulDiv( // vault.fee() % of 10 LYX
-        validatorRewards, vault.fee(), _VAULT_FEE_BASIS);
+            validatorRewards,
+            vault.fee(),
+            _VAULT_FEE_BASIS
+        );
         assertEq(expectedFeeAmount, 1 ether);
         uint256 rewardsAfterFees = validatorRewards - expectedFeeAmount; // 10 LYX rewards - 1 LYX fee
 
@@ -277,33 +330,50 @@ contract Rewards is LiquidStakingTokenBaseTest {
 
         // 4. a first user burn. How many LYX should he receive?
         vm.prank(alice);
-        liquidStakingToken.burn(alice, aliceStake, "");
-        assertEq(liquidStakingToken.balanceOf(alice), 0);
+        sLyxToken.burn(alice, aliceStake, "");
+        assertEq(sLyxToken.balanceOf(alice), 0);
 
-        uint256 proportion = Math.mulDiv(aliceStake, 1e18, aliceStake + bobStake + 1_000 wei);
-        uint256 rewardsForAliceAndBob = Math.mulDiv(proportion, rewardsAfterFees, 1e18);
-        assertEq(vault.balanceOf(alice), aliceStake + rewardsForAliceAndBob - 2 wei);
+        uint256 proportion = Math.mulDiv(
+            aliceStake,
+            1e18,
+            aliceStake + bobStake + 1_000 wei
+        );
+        uint256 rewardsForAliceAndBob = Math.mulDiv(
+            proportion,
+            rewardsAfterFees,
+            1e18
+        );
+        assertEq(
+            vault.balanceOf(alice),
+            aliceStake + rewardsForAliceAndBob - 2 wei
+        );
 
-        // 5. someone else deposit 10 LYX on behalf of the LST Token address.
+        // 5. someone else deposit 10 LYX on behalf of the SLYXToken contract address.
         hoax(bob, 10 ether);
         // TODO: this seems to be a bug and vulnerability that allows a user to claim more back as stake
         // and proportion of the rewards (inflation attack?). Figure out what to do with this test.
         // Skipped for now
         vm.skip(true);
-        vault.deposit{value: 10 ether}(address(liquidStakingToken));
+        vault.deposit{value: 10 ether}(address(sLyxToken));
 
         vm.prank(vaultOracle);
         vault.rebalance();
 
-        // 6. second user burn its LST. How much does he receive? Probably receive more than 55 LYX
+        // 6. second user burn its sLYX. How much does he receive? Probably receive more than 55 LYX
         // TODO: Ensure this test is valid. Verify the logic through the stack trace and console logs
         vm.prank(bob);
-        liquidStakingToken.burn(bob, bobStake, "");
-        assertEq(liquidStakingToken.balanceOf(bob), 0);
-        assertEq(vault.balanceOf(bob), bobStake + rewardsForAliceAndBob - 2 wei); // TODO: figure out the 2 wei difference
+        sLyxToken.burn(bob, bobStake, "");
+        assertEq(sLyxToken.balanceOf(bob), 0);
+        assertEq(
+            vault.balanceOf(bob),
+            bobStake + rewardsForAliceAndBob - 2 wei
+        ); // TODO: figure out the 2 wei difference
     }
 
-    function test_roundingErrorRemainsOneWeiEvenWithBigDeposits() public beforeTest(600_000 ether) {
+    function test_roundingErrorRemainsOneWeiEvenWithBigDeposits()
+        public
+        beforeTest(600_000 ether)
+    {
         address alice = makeAddr("alice");
         uint256 amount = 500_000 ether;
 
@@ -321,7 +391,11 @@ contract Rewards is LiquidStakingTokenBaseTest {
 
         for (uint256 ii = 0; ii < (500_000 / 32); ii++) {
             vm.prank(vaultOracle);
-            vault.registerValidator(abi.encodePacked(ii), abi.encodePacked(ii), bytes32(0));
+            vault.registerValidator(
+                abi.encodePacked(ii),
+                abi.encodePacked(ii),
+                bytes32(0)
+            );
         }
 
         assertEq(vault.totalStaked(), amount);
@@ -334,14 +408,18 @@ contract Rewards is LiquidStakingTokenBaseTest {
         // user converts its stake in Liquid Staking tokens
         uint256 userBalance = vault.balanceOf(alice);
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), userBalance, "");
+        vault.transferStake(address(sLyxToken), userBalance, "");
 
         // simulate rewards +10000 ethers
         vm.deal(address(vault), 10000 ether);
 
         vm.prank(vaultOracle);
         vm.expectEmit(address(vault));
-        emit IVault.RewardsDistributed({balance: amount, rewards: 10000 ether, fee: 1000 ether});
+        emit IVault.RewardsDistributed({
+            balance: amount,
+            rewards: 10000 ether,
+            fee: 1000 ether
+        });
         vm.expectEmit(address(vault));
         emit IVault.Rebalanced({
             previousTotalStaked: amount,
@@ -351,21 +429,26 @@ contract Rewards is LiquidStakingTokenBaseTest {
         });
         vault.rebalance();
 
-        uint256 lstContractBalance = vault.balanceOf(address(liquidStakingToken));
+        uint256 sLyxTokenContractBalanceInVault = vault.balanceOf(
+            address(sLyxToken)
+        );
         assertEq(address(vault).balance, 10000 ether);
         assertEq(vault.totalFees(), 1000 ether);
 
-        // Burn the LST and see if the balance increased
+        // Burn the sLYX tokens and see if the balance increased
         vm.prank(alice);
-        liquidStakingToken.burn(alice, userBalance, "");
+        sLyxToken.burn(alice, userBalance, "");
 
         /// @dev There is usually a remainder / difference of 1 wei accepted as rounding error in the Vault
         /// (see previous test above), but I don't know why in this test, it is 0
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
-        assertEq(vault.balanceOf(alice), lstContractBalance);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
+        assertEq(vault.balanceOf(alice), sLyxTokenContractBalanceInVault);
     }
 
-    function test_shouldMintMoreTokensWhenTransferStakeAfterAccumulatedRewards() public beforeTest(600_000 ether) {
+    function test_shouldMintMoreTokensWhenTransferStakeAfterAccumulatedRewards()
+        public
+        beforeTest(600_000 ether)
+    {
         address alice = makeAddr("alice");
         uint256 amount = 100 ether;
 
@@ -416,28 +499,42 @@ contract Rewards is LiquidStakingTokenBaseTest {
 
         // vault.fee() % of 10 LYX
         // Set to 10 % in this test, so should be 1 LYX of fee
-        uint256 expectedFeeAmount = Math.mulDiv(validatorRewards, vault.fee(), _VAULT_FEE_BASIS);
+        uint256 expectedFeeAmount = Math.mulDiv(
+            validatorRewards,
+            vault.fee(),
+            _VAULT_FEE_BASIS
+        );
         assertEq(expectedFeeAmount, 1 ether);
         assertEq(vault.totalStaked(), expectedTotalStaked); // Shouldn't have changed
 
         expectedTotalUnstaked += validatorRewards - expectedFeeAmount; // 9 LYX
         assertEq(vault.totalUnstaked(), expectedTotalUnstaked);
 
-        assertEq(vault.totalAssets(), expectedTotalStaked + expectedTotalUnstaked);
+        assertEq(
+            vault.totalAssets(),
+            expectedTotalStaked + expectedTotalUnstaked
+        );
         assertEq(vault.totalFees(), expectedFeeAmount);
 
-        assertEq(vault.balanceOf(alice), amount - vault.balanceOf(address(0)) + (validatorRewards - expectedFeeAmount));
+        assertEq(
+            vault.balanceOf(alice),
+            amount -
+                vault.balanceOf(address(0)) +
+                (validatorRewards - expectedFeeAmount)
+        );
         assertEq(vault.sharesOf(alice), amount - vault.sharesOf(address(0)));
 
         // alice converts its stake in Liquid Staking tokens
         uint256 userBalance = vault.balanceOf(alice);
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), userBalance, "");
+        vault.transferStake(address(sLyxToken), userBalance, "");
 
         // Check that the accumulated rewards were also minted as sLYX
         assertEq(
-            liquidStakingToken.balanceOf(alice),
-            amount - vault.balanceOf(address(0)) + (validatorRewards - expectedFeeAmount)
+            sLyxToken.balanceOf(alice),
+            amount -
+                vault.balanceOf(address(0)) +
+                (validatorRewards - expectedFeeAmount)
         );
     }
 
@@ -450,7 +547,11 @@ contract Rewards is LiquidStakingTokenBaseTest {
         address alice = makeAddr("alice");
         uint256 amount = 100 ether;
 
-        uint256 lstBalance = _depositAndClaimAllAsLiquidStakingTokens(alice, amount, "");
+        uint256 sLyxTokenContractBalanceInVault = _depositAndClaimAllAsSLYXTokens(
+                alice,
+                amount,
+                ""
+            );
 
         vm.startPrank(vaultOracle);
         vault.registerValidator(hex"aaaa", hex"1111", bytes32(0));
@@ -459,8 +560,14 @@ contract Rewards is LiquidStakingTokenBaseTest {
         vm.stopPrank();
 
         // 1:1 peg initially
-        assertEq(liquidStakingToken.getNativeTokenValue(lstBalance), amount);
-        assertEq(liquidStakingToken.getLiquidStakingTokenValue(amount), lstBalance);
+        assertEq(
+            sLyxToken.getNativeTokenValue(sLyxTokenContractBalanceInVault),
+            amount
+        );
+        assertEq(
+            sLyxToken.getSLYXTokenValue(amount),
+            sLyxTokenContractBalanceInVault
+        );
 
         // simulate rewards +10 ethers
         uint256 validatorRewards = 10 ether;
@@ -471,7 +578,13 @@ contract Rewards is LiquidStakingTokenBaseTest {
         vault.rebalance();
 
         // check that rebalance now is always greater than 1
-        assertGt(liquidStakingToken.getNativeTokenValue(lstBalance), amount);
-        assertLt(liquidStakingToken.getLiquidStakingTokenValue(amount), lstBalance);
+        assertGt(
+            sLyxToken.getNativeTokenValue(sLyxTokenContractBalanceInVault),
+            amount
+        );
+        assertLt(
+            sLyxToken.getSLYXTokenValue(amount),
+            sLyxTokenContractBalanceInVault
+        );
     }
 }

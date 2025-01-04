@@ -12,8 +12,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 // Errors
 import {
     InvalidVaultAddress,
-    InvalidLSTAddress,
-    OnlyCallableByLiquidStakingTokenContract,
+    InvalidSLYXTokenAddress,
+    OnlyCallableBySLYXTokenContract,
     LSP17AutoMintExtensionCannotHoldVaultStake
 } from "./Errors.sol";
 
@@ -23,39 +23,39 @@ import {
 /// under the data key `LSP17Extension:<bytes4>` (`0xcee78b4094da860110960000<bytes4>`)
 /// 2. call the `deposit(address)` function directly on the Liquid Staking token contract, the same way you would do a deposit on the Staking vault.
 /// The calldata will be re-routed to this extension contract which will deposit and transfer the deposited stake of the user
-/// to the Liquid Staking token contract and mint LST tokens for the user.
+/// to the Liquid Staking token contract and mint sLYX tokens for the user.
 /// For more details, see:
 /// - LSP17 docs: https://docs.lukso.tech/standards/accounts/lsp17-contract-extension
 /// - LSP17 specs: https://github.com/lukso-network/LIPs/blob/main/LSPs/LSP-17-ContractExtension.md
-contract LiquidStakingTokenAutoMintExtension is ReentrancyGuard, LSP17Extension {
+contract SLYXTokenAutoMintExtension is ReentrancyGuard, LSP17Extension {
     IVault internal immutable _STAKING_VAULT;
-    ILSP7 internal immutable _LIQUID_STAKING_TOKEN;
+    ILSP7 internal immutable _SLYX_TOKEN;
 
-    constructor(IVault stakingVault_, ILSP7 liquidStakingToken_) {
+    constructor(IVault stakingVault_, ILSP7 sLyxToken_) {
         if (address(stakingVault_) == address(0)) {
             revert InvalidVaultAddress(address(stakingVault_));
         }
 
-        if (address(liquidStakingToken_) == address(0)) {
-            revert InvalidLSTAddress(address(liquidStakingToken_));
+        if (address(sLyxToken_) == address(0)) {
+            revert InvalidSLYXTokenAddress(address(sLyxToken_));
         }
 
         _STAKING_VAULT = stakingVault_;
-        _LIQUID_STAKING_TOKEN = liquidStakingToken_;
+        _SLYX_TOKEN = sLyxToken_;
     }
 
     /// @dev Re-routing function that allow users to make deposit and mint immediately liquid staking tokens in a single transaction.
-    /// This removes the need to do 2 x separate transactions (first for depositing, second for transferring the stake to LST token contract
-    /// and mint LST tokens for the user).
+    /// This removes the need to do 2 x separate transactions (first for depositing, second for transferring the stake to SLYX Token contract
+    /// and mint sLYX tokens for the user).
     /// This function can only be called by the Liquid Staking token contract that this extension is linked to
     function deposit(address beneficiary) external payable nonReentrant {
-        if (msg.sender != address(_LIQUID_STAKING_TOKEN)) {
-            revert OnlyCallableByLiquidStakingTokenContract(msg.sender);
+        if (msg.sender != address(_SLYX_TOKEN)) {
+            revert OnlyCallableBySLYXTokenContract(msg.sender);
         }
 
         _STAKING_VAULT.deposit{value: msg.value}(address(this));
-        _STAKING_VAULT.transferStake(address(_LIQUID_STAKING_TOKEN), msg.value, "");
-        _LIQUID_STAKING_TOKEN.transfer({from: address(this), to: beneficiary, amount: msg.value, force: true, data: ""});
+        _STAKING_VAULT.transferStake(address(_SLYX_TOKEN), msg.value, "");
+        _SLYX_TOKEN.transfer({from: address(this), to: beneficiary, amount: msg.value, force: true, data: ""});
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {

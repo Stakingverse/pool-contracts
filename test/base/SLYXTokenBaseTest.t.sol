@@ -5,12 +5,9 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {IVault, Vault} from "../../src/Vault.sol";
+import {IVault, Vault} from "UniversalPage-contracts/src/pool/Vault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
-import {
-    TransparentUpgradeableProxy,
-    ITransparentUpgradeableProxy as IProxy
-} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {TransparentUpgradeableProxy, ITransparentUpgradeableProxy as IProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 // Libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
@@ -19,10 +16,10 @@ import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
 import {_LSP17_EXTENSION_PREFIX} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Constants.sol";
 
 // Contracts to test
-import {LiquidStakingToken} from "../../src/LiquidStakingToken.sol";
-import {LiquidStakingTokenAutoMintExtension} from "../../src/LiquidStakingTokenAutoMintExtension.sol";
+import {SLYXToken} from "../../src/SLYXToken.sol";
+import {SLYXTokenAutoMintExtension} from "../../src/SLYXTokenAutoMintExtension.sol";
 
-abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
+abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
     /// @dev There is a rounding error of 1 Wei accepted as loss in Universal.Page vault contract.
     /// https://github.com/Universal-Page/contracts/blob/af4e4f9ea90620226c1aea2d225e73a7800782fc/src/pool/Vault.sol#L278-L280
     uint256 internal constant VAULT_ROUNDING_ERROR_LOSS = 1 wei;
@@ -49,9 +46,9 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
     Vault vaultImplementation;
     Vault vault;
 
-    // LST implementation + proxy
-    LiquidStakingToken liquidStakingTokenImplementation;
-    LiquidStakingToken liquidStakingToken;
+    // SLYXToken implementation + proxy
+    SLYXToken sLyxTokenImplementation;
+    SLYXToken sLyxToken;
 
     address autoMintExtension;
 
@@ -85,7 +82,7 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
         _;
     }
 
-    function _setUpLiquidStakingToken(bool setDepositExtension) internal {
+    function _setUpSLYXToken(bool setDepositExtension) internal {
         depositContract = new MockDepositContract();
 
         proxyAdmin = address(1);
@@ -103,14 +100,25 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
         // Therefore, we need to deploy the new Vault contracts in the test suite.
         vaultImplementation = new Vault();
 
-        bytes memory initializeCalldata = abi.encodeCall(Vault.initialize, (vaultOwner, vaultOperator, depositContract));
+        bytes memory initializeCalldata = abi.encodeCall(
+            Vault.initialize,
+            (vaultOwner, vaultOperator, depositContract)
+        );
 
         vault = Vault(
-            payable(new TransparentUpgradeableProxy(address(vaultImplementation), proxyAdmin, initializeCalldata))
+            payable(
+                new TransparentUpgradeableProxy(
+                    address(vaultImplementation),
+                    proxyAdmin,
+                    initializeCalldata
+                )
+            )
         );
 
         vm.mockCall(
-            address(vault), abi.encodeWithSelector(IProxy.implementation.selector), abi.encode(vaultImplementation)
+            address(vault),
+            abi.encodeWithSelector(IProxy.implementation.selector),
+            abi.encode(vaultImplementation)
         );
 
         vm.startPrank(vaultOperator);
@@ -120,31 +128,45 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
         vault.setDepositLimit(320 ether);
         vm.stopPrank();
 
-        liquidStakingTokenImplementation = new LiquidStakingToken();
+        sLyxTokenImplementation = new SLYXToken();
 
-        liquidStakingToken = LiquidStakingToken(
-            payable(new TransparentUpgradeableProxy(address(liquidStakingTokenImplementation), proxyAdmin, ""))
+        sLyxToken = SLYXToken(
+            payable(
+                new TransparentUpgradeableProxy(
+                    address(sLyxTokenImplementation),
+                    proxyAdmin,
+                    ""
+                )
+            )
         );
 
-        liquidStakingToken.initialize(tokenContractOwner, vault);
+        sLyxToken.initialize(tokenContractOwner, vault);
 
         if (setDepositExtension) {
-            autoMintExtension = address(new LiquidStakingTokenAutoMintExtension(vault, liquidStakingToken));
+            autoMintExtension = address(
+                new SLYXTokenAutoMintExtension(vault, sLyxToken)
+            );
 
-            bytes32 extensionDataKeyForDeposit =
-                LSP2Utils.generateMappingKey(_LSP17_EXTENSION_PREFIX, IVault.deposit.selector);
+            bytes32 extensionDataKeyForDeposit = LSP2Utils.generateMappingKey(
+                _LSP17_EXTENSION_PREFIX,
+                IVault.deposit.selector
+            );
 
-            // set extension for `deposit(address)` selector, to allow minting LST immediately while staking
+            // set extension for `deposit(address)` selector, to allow minting sLYX tokens immediately while staking
             vm.prank(tokenContractOwner);
-            liquidStakingToken.setData(extensionDataKeyForDeposit, abi.encodePacked(autoMintExtension));
+            sLyxToken.setData(
+                extensionDataKeyForDeposit,
+                abi.encodePacked(autoMintExtension)
+            );
         }
     }
 
-    function _depositAndClaimAllAsLiquidStakingTokens(address user, uint256 depositAmount, bytes memory optionalData)
-        internal
-        returns (uint256 lstBalance)
-    {
-        // prevent `_toShare in the Vault to return 0
+    function _depositAndClaimAllAsSLYXTokens(
+        address user,
+        uint256 depositAmount,
+        bytes memory optionalData
+    ) internal returns (uint256 sLyxTokenContractBalanceInVault) {
+        // prevent `_toShare` in the Vault to return 0
         vm.assume(depositAmount >= 1_000 wei);
 
         hoax(user, depositAmount);
@@ -152,8 +174,8 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
 
         uint256 shares = vault.balanceOf(user);
         vm.prank(user);
-        vault.transferStake(address(liquidStakingToken), shares, optionalData);
+        vault.transferStake(address(sLyxToken), shares, optionalData);
 
-        return liquidStakingToken.balanceOf(user);
+        return sLyxToken.balanceOf(user);
     }
 }

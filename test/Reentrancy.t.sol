@@ -2,16 +2,16 @@
 pragma solidity ^0.8.13;
 
 import {ITransparentUpgradeableProxy as IProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
+import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Mocks
 import {MockContractWithLSP1Reentrancy} from "./mocks/MockContractWithLSP1Reentrancy.sol";
 
 /// @title Security tests around Reentrancy
 // ----------------------------------------
-contract Reentrancy is LiquidStakingTokenBaseTest {
+contract Reentrancy is SLYXTokenBaseTest {
     function setUp() public {
-        _setUpLiquidStakingToken({setDepositExtension: false});
+        _setUpSLYXToken({setDepositExtension: false});
     }
 
     function test_cannotReenterOnVaultStakeReceivedViaTransferStake()
@@ -21,7 +21,7 @@ contract Reentrancy is LiquidStakingTokenBaseTest {
     {
         MockContractWithLSP1Reentrancy alice = new MockContractWithLSP1Reentrancy(
                 vault,
-                address(liquidStakingToken)
+                address(sLyxToken)
             );
         vm.deal(address(alice), 200 ether);
 
