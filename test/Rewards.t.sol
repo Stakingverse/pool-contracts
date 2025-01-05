@@ -7,7 +7,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Helpers
-import {IVault} from "../src/Vault.sol";
+import {IVault} from "../src/StakingverseVault.sol";
 
 // Mocks
 import {MockDepositContract} from "./mocks/MockDepositContract.sol";
@@ -145,8 +145,8 @@ contract Rewards is SLYXTokenBaseTest {
         // Simulate +10 LYX rewards
         vm.deal(address(vault), _VALIDATOR_REWARDS + vault.totalUnstaked());
 
-        uint256 expectedFeeAmount = Math.mulDiv( // vault.fee() % of 10 LYX
-        _VALIDATOR_REWARDS, vault.fee(), _VAULT_FEE_BASIS);
+        // vault.fee() % of 10 LYX
+        uint256 expectedFeeAmount = Math.mulDiv(_VALIDATOR_REWARDS, vault.fee(), _VAULT_FEE_BASIS);
         assertEq(expectedFeeAmount, 1 ether);
         uint256 rewardsAfterFees = _VALIDATOR_REWARDS - expectedFeeAmount; // 10 LYX rewards - 1 LYX fee
 

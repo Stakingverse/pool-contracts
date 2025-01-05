@@ -5,13 +5,13 @@ import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 
 // Helpers
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {IVault} from "../src/Vault.sol";
+import {IVault} from "../src/StakingverseVault.sol";
 
 // Errors to tests
 import {
     LSP7AmountExceedsBalance, LSP7AmountExceedsAuthorizedAmount
 } from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
-import {Vault} from "../src/Vault.sol";
+import {StakingverseVault} from "../src/StakingverseVault.sol";
 
 /// @title Testing Token `burn(address,uint256,bytes) function
 // -----------------------------------------------------------
@@ -353,7 +353,7 @@ contract TokenBurn is SLYXTokenBaseTest {
         assertEq(vault.balanceOf(address(sLyxToken)), depositAmount);
         assertEq(sLyxToken.balanceOf(alice), depositAmount);
 
-        vm.expectRevert(abi.encodeWithSelector(Vault.InvalidAmount.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.InvalidAmount.selector, 0));
         vm.prank(alice);
         sLyxToken.burn(alice, 0, "");
     }

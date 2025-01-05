@@ -59,7 +59,7 @@ interface IVaultStakeRecipient {
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external;
 }
 
-contract Vault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
+contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
     uint32 private constant _FEE_BASIS = 100_000;
     uint32 private constant _MIN_FEE = 0; // 0%
     uint32 private constant _MAX_FEE = 15_000; // 15%

@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {OwnableCallerNotTheOwner} from "@erc725/smart-contracts/contracts/errors.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Vault} from "../../src/Vault.sol";
+import {StakingverseVault} from "../../src/StakingverseVault.sol";
 import {IDepositContract} from "../../src/IDepositContract.sol";
 import {MockDepositContract} from "./mocks/MockDepositContract.sol";
 
@@ -26,7 +26,7 @@ contract VaultTest is Test {
     );
     event ValidatorExited(bytes pubkey, uint256 total);
 
-    Vault vault;
+    StakingverseVault vault;
     address admin;
     address owner;
     address operator;
@@ -45,13 +45,13 @@ contract VaultTest is Test {
 
         depositContract = new MockDepositContract();
 
-        vault = Vault(
+        vault = StakingverseVault(
             payable(
                 address(
                     new TransparentUpgradeableProxy(
-                        address(new Vault()),
+                        address(new StakingverseVault()),
                         admin,
-                        abi.encodeWithSelector(Vault.initialize.selector, owner, operator, depositContract)
+                        abi.encodeWithSelector(StakingverseVault.initialize.selector, owner, operator, depositContract)
                     )
                 )
             )
@@ -93,11 +93,11 @@ contract VaultTest is Test {
 
     function test_Revert_IfConfigureNotOwner() public {
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.setDepositLimit(2 * 32 ether);
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.enableOracle(oracle, true);
 
         vm.prank(address(1));
@@ -109,35 +109,35 @@ contract VaultTest is Test {
         vault.unpause();
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.setFee(1);
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.setFeeRecipient(feeRecipient);
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.setRestricted(true);
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOperator.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOperator.selector, address(1)));
         vault.allowlist(address(0), true);
     }
 
     function test_Revert_IfCallerNotOracle() public {
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOracle.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOracle.selector, address(1)));
         vault.rebalance();
 
         vm.prank(address(1));
-        vm.expectRevert(abi.encodeWithSelector(Vault.CallerNotOracle.selector, address(1)));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.CallerNotOracle.selector, address(1)));
         vault.registerValidator(hex"1234", hex"5678", bytes32(0));
     }
 
     function test_Revert_DepositZero() public {
         vm.prank(vm.addr(100));
-        vm.expectRevert(abi.encodeWithSelector(Vault.InvalidAmount.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.InvalidAmount.selector, 0));
         vault.deposit{value: 0}(beneficiary);
     }
 
@@ -145,7 +145,7 @@ contract VaultTest is Test {
         address alice = makeAddr("alice");
         uint256 amount = 10 ether;
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAddress.selector, address(0));
+        bytes memory expectedRevertData = abi.encodeWithSelector(StakingverseVault.InvalidAddress.selector, address(0));
 
         hoax(alice, amount);
         vm.expectRevert(expectedRevertData);
@@ -160,7 +160,7 @@ contract VaultTest is Test {
         vm.deal(alice, 11 ether);
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Vault.DepositLimitExceeded.selector, 11 ether, 10 ether));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.DepositLimitExceeded.selector, 11 ether, 10 ether));
         vault.deposit{value: 11 ether}(beneficiary);
     }
 
@@ -262,7 +262,7 @@ contract VaultTest is Test {
         vault.registerValidator(hex"1234", hex"5678", bytes32(0));
 
         vm.prank(oracle);
-        vm.expectRevert(abi.encodeWithSelector(Vault.ValidatorAlreadyRegistered.selector, hex"1234"));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.ValidatorAlreadyRegistered.selector, hex"1234"));
         vault.registerValidator(hex"1234", hex"5678", bytes32(0));
     }
 
@@ -394,7 +394,9 @@ contract VaultTest is Test {
 
         vm.startPrank(alice);
         vm.expectRevert(
-            abi.encodeWithSelector(Vault.InsufficientBalance.selector, 40 ether - vault.balanceOf(address(0)), 41 ether)
+            abi.encodeWithSelector(
+                StakingverseVault.InsufficientBalance.selector, 40 ether - vault.balanceOf(address(0)), 41 ether
+            )
         );
         vault.withdraw(41 ether, alice);
         vm.stopPrank();
@@ -500,7 +502,7 @@ contract VaultTest is Test {
         vm.deal(address(vault), 32 ether);
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Vault.InsufficientBalance.selector, 0 ether, 1.5 ether));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.InsufficientBalance.selector, 0 ether, 1.5 ether));
         vault.claim(1.5 ether, alice);
 
         vm.prank(oracle);
@@ -1122,7 +1124,7 @@ contract VaultTest is Test {
         assertEq(0 ether, vault.totalFees());
 
         vm.prank(oracle);
-        vm.expectRevert(abi.encodeWithSelector(Vault.InsufficientBalance.selector, 2 ether, 32 ether));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.InsufficientBalance.selector, 2 ether, 32 ether));
         vault.registerValidator(hex"4321", hex"8765", bytes32(0));
 
         vm.prank(oracle);
@@ -1567,7 +1569,7 @@ contract VaultTest is Test {
 
         uint256 withdraw_amount = vault.balanceOf(alice) - 2;
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Vault.InvalidAmount.selector, withdraw_amount));
+        vm.expectRevert(abi.encodeWithSelector(StakingverseVault.InvalidAmount.selector, withdraw_amount));
         vault.withdraw(withdraw_amount, alice);
 
         assertNotEq(vault.totalAssets(), 0);

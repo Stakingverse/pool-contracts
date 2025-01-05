@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
-import {Vault} from "../src/Vault.sol";
+import {StakingverseVault} from "../src/StakingverseVault.sol";
 import {LSP7TokenContractCannotHoldValue} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
 
 /// @title Testing Withdraw related to burning
@@ -50,7 +50,8 @@ contract Withdraw is SLYXTokenBaseTest {
 
         vault.transferStake(address(sLyxToken), aliceStake, "");
 
-        bytes memory expectedRevertError = abi.encodeWithSelector(Vault.InsufficientBalance.selector, 0, aliceStake);
+        bytes memory expectedRevertError =
+            abi.encodeWithSelector(StakingverseVault.InsufficientBalance.selector, 0, aliceStake);
 
         vm.expectRevert(expectedRevertError);
         vault.withdraw(aliceStake, alice);
@@ -65,7 +66,7 @@ contract Withdraw is SLYXTokenBaseTest {
         uint256 aliceStake = vault.balanceOf(alice);
 
         bytes memory expectedRevertError =
-            abi.encodeWithSelector(Vault.WithdrawalFailed.selector, alice, address(sLyxToken), aliceStake);
+            abi.encodeWithSelector(StakingverseVault.WithdrawalFailed.selector, alice, address(sLyxToken), aliceStake);
 
         vm.expectRevert(expectedRevertError);
         vault.withdraw(aliceStake, address(sLyxToken));

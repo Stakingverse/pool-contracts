@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 // Interfaces
 import {ITransparentUpgradeableProxy as ITransparentProxy} from
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {IVault, IVaultStakeRecipient} from "./Vault.sol";
+import {IVault, IVaultStakeRecipient} from "./StakingverseVault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
 // Modules
@@ -157,18 +157,20 @@ contract SLYXToken is
         virtual
         override
     {
-        // if we are burning sLYX tokens, re-transfer stake to `from`
         if (to == address(0)) {
-            // Calculate the number of LYX that should be transferred back to the user for burning its tokens
+            // Get the total amount of staked LYX held by this contract.
+            // This represents the sum of all the staked LYX that were then converted to sLYX by any staker.
+            // Note: this might also include any accumulated reward.
             uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
 
             // Since we are in the `_afterTokenTransfer` hook, balances and total supply have already been decreased.
             // We need to account the burnt amount in the total supply for the calculation.
             uint256 totalSLYXMintedBeforeBurning = totalSupply() + amount;
 
-            uint256 sLyxAmountAsLyxStake = amount.mulDiv(sLyxTokenContractStake, totalSLYXMintedBeforeBurning);
+            // calculate the number of staked LYX (+ any accunmulated rewards) that should be transferred back to the `from` address.
+            uint256 amountAsStakedLYX = amount.mulDiv(sLyxTokenContractStake, totalSLYXMintedBeforeBurning);
 
-            stakingVault.transferStake(from, sLyxAmountAsLyxStake, data);
+            stakingVault.transferStake(from, amountAsStakedLYX, data);
         }
     }
 }

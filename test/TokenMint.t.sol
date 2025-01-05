@@ -11,7 +11,7 @@ import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalPro
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // modules
-import {Vault, IVault} from "../src/Vault.sol";
+import {StakingverseVault, IVault} from "../src/StakingverseVault.sol";
 
 // libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
@@ -120,7 +120,7 @@ contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
         vault.deposit{value: depositAmount}(alice);
 
         bytes memory expectedRevertData =
-            abi.encodeWithSelector(Vault.InsufficientBalance.selector, depositAmount, amountToMakeLiquid);
+            abi.encodeWithSelector(StakingverseVault.InsufficientBalance.selector, depositAmount, amountToMakeLiquid);
 
         vm.prank(alice);
         vm.expectRevert(expectedRevertData);
@@ -238,7 +238,7 @@ contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
         startHoax(alice, depositAmount);
         vault.deposit{value: depositAmount}(alice);
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAmount.selector, 0);
+        bytes memory expectedRevertData = abi.encodeWithSelector(StakingverseVault.InvalidAmount.selector, 0);
 
         vm.expectRevert(expectedRevertData);
         vault.transferStake(address(sLyxToken), 0, "");
@@ -253,7 +253,7 @@ contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
 
         vault.deposit{value: depositAmount}(alice);
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAddress.selector, address(0));
+        bytes memory expectedRevertData = abi.encodeWithSelector(StakingverseVault.InvalidAddress.selector, address(0));
 
         vm.expectRevert(expectedRevertData);
         vault.transferStake(address(0), 5 ether, "");

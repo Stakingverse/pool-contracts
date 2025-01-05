@@ -6,13 +6,13 @@ import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy as IProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {Vault} from "../src/Vault.sol";
+import {StakingverseVault} from "../src/StakingverseVault.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {SLYXToken} from "../src/SLYXToken.sol";
 
 // Interfaces
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
-import {IVault} from "../src/Vault.sol";
+import {IVault} from "../src/StakingverseVault.sol";
 
 // Libraries
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
@@ -81,7 +81,7 @@ contract TokenTransfer is SLYXTokenBaseTest {
     }
 
     function test_transferDoesNotFailIfVaultProxyIsNotEIP1967() public {
-        vault = Vault(payable(Clones.clone(address(vaultImplementation))));
+        vault = StakingverseVault(payable(Clones.clone(address(vaultImplementation))));
         vault.initialize(vaultOwner, vaultOperator, depositContract);
 
         vm.startPrank(vaultOperator);

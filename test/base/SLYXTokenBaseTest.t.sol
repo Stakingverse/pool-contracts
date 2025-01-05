@@ -5,7 +5,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {IVault, Vault} from "../../src/Vault.sol";
+import {IVault, StakingverseVault} from "../../src/StakingverseVault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
 import {
     TransparentUpgradeableProxy,
@@ -23,8 +23,8 @@ import {_LSP17_EXTENSION_PREFIX} from "@lukso/lsp17contractextension-contracts/c
 import {SLYXToken} from "../../src/SLYXToken.sol";
 
 abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
-    /// @dev There is a rounding error of 1 Wei accepted as loss in Universal.Page vault contract.
-    /// https://github.com/Universal-Page/contracts/blob/af4e4f9ea90620226c1aea2d225e73a7800782fc/src/pool/Vault.sol#L278-L280
+    /// @dev There is a rounding error of 1 Wei accepted as loss.
+    /// https://github.com/Stakingverse/pool-contracts/blob/main/src/StakingverseVault.sol#L283
     uint256 internal constant VAULT_ROUNDING_ERROR_LOSS = 1 wei;
 
     // from the vault
@@ -46,8 +46,8 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
     address tokenContractOwner;
 
     // implementation + proxy
-    Vault vaultImplementation;
-    Vault vault;
+    StakingverseVault vaultImplementation;
+    StakingverseVault vault;
 
     // SLYXToken implementation + proxy
     SLYXToken sLyxTokenImplementation;
@@ -99,11 +99,12 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
         // The cheatcode vm.etch(...) set the bytecode, but does not initialize the state variables of the vault proxy,
         // (logic contract, admin, etc...) so any call to the proxy will fail.
         // Therefore, we need to deploy the new Vault contracts in the test suite.
-        vaultImplementation = new Vault();
+        vaultImplementation = new StakingverseVault();
 
-        bytes memory initializeCalldata = abi.encodeCall(Vault.initialize, (vaultOwner, vaultOperator, depositContract));
+        bytes memory initializeCalldata =
+            abi.encodeCall(StakingverseVault.initialize, (vaultOwner, vaultOperator, depositContract));
 
-        vault = Vault(
+        vault = StakingverseVault(
             payable(new TransparentUpgradeableProxy(address(vaultImplementation), proxyAdmin, initializeCalldata))
         );
 

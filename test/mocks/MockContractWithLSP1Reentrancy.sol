@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ILSP1UniversalReceiver} from "@lukso/lsp1-contracts/contracts/ILSP1UniversalReceiver.sol";
-import {IVault} from "../../src/Vault.sol";
+import {IVault} from "../../src/StakingverseVault.sol";
 
 import {_INTERFACEID_LSP1} from "@lukso/lsp1-contracts/contracts/LSP1Constants.sol";
 
