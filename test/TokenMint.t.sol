@@ -2,7 +2,8 @@
 pragma solidity ^0.8.13;
 
 // Test helpers
-import {LiquidStakingTokenBaseTest} from "./base/LiquidStakingTokenBaseTest.t.sol";
+import {console} from "forge-std/Test.sol";
+import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalProfileTestHelpers.t.sol";
 
 // interfaces
@@ -10,7 +11,7 @@ import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalPro
 import {ILSP7DigitalAsset} from "@lukso/lsp7-contracts/contracts/ILSP7DigitalAsset.sol";
 
 // modules
-import {Vault} from "../src/Vault.sol";
+import {StakingverseVault, IVault} from "../src/StakingverseVault.sol";
 
 // libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
@@ -23,15 +24,18 @@ import {
 
 import {_INTERFACEID_LSP7} from "@lukso/lsp7-contracts/contracts/LSP7Constants.sol";
 
-/// @title Testing mintiing LST tokens via `transferStake(liquidStakingToken, stakeAmount, data)`
+// errors
+import {NoExtensionFoundForFunctionSelector} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Errors.sol";
+
+/// @title Testing minting sLYX tokens via `transferStake(sLyxToken, stakeAmount, data)`
 /// ------------------
-contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
+contract TokenMint is SLYXTokenBaseTest, UniversalProfileTestHelpers {
     function setUp() public {
         UniversalProfileTestHelpers._deployLSP1DelegateSingleton();
-        _setUpLiquidStakingToken({setDepositExtension: false});
+        _setUpSLYXToken();
     }
 
-    function test_depositLYXToVaultThenMintTokens(uint256 amount) public beforeTest(1_000_000 ether) {
+    function test_depositLYXToVaultThenMintSLYXTokens(uint256 amount) public beforeTest(1_000_000 ether) {
         vm.assume(amount > 1 ether && amount < 1_000_000 ether);
 
         address user = vm.addr(100);
@@ -47,15 +51,15 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         assertEq(vault.totalUnstaked(), amount);
 
         uint256 userBalance = vault.balanceOf(user);
-        assertEq(0, vault.balanceOf(address(liquidStakingToken)));
+        assertEq(0, vault.balanceOf(address(sLyxToken)));
 
-        vault.transferStake(address(liquidStakingToken), userBalance, "");
+        vault.transferStake(address(sLyxToken), userBalance, "");
         assertEq(vault.balanceOf(user), 0);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), userBalance);
+        assertEq(vault.balanceOf(address(sLyxToken)), userBalance);
         assertEq(vault.totalUnstaked(), amount);
     }
 
-    function test_shouldMintAllStakeAsLSTTokensWhenCallingTransferStakeToLSTContract()
+    function test_shouldMintAllStakeAsSLYXTokensWhenCallingTransferStakeToSLYXTokenContract()
         public
         beforeTest(1_000_000 ether)
         makeInitialDeposit
@@ -66,18 +70,18 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         hoax(alice, depositAmount);
         vault.deposit{value: depositAmount}(alice);
 
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
 
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), depositAmount, "");
+        vault.transferStake(address(sLyxToken), depositAmount, "");
 
         assertEq(vault.balanceOf(alice), 0);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), depositAmount);
+        assertEq(vault.balanceOf(address(sLyxToken)), depositAmount);
 
-        assertEq(liquidStakingToken.balanceOf(alice), depositAmount);
+        assertEq(sLyxToken.balanceOf(alice), depositAmount);
     }
 
-    function test_shouldMintPartialStakeAsLSTTokens(uint256 amountToMakeLiquid)
+    function test_shouldMintPartialStakeAsSLYXTokens(uint256 amountToMakeLiquid)
         public
         beforeTest(1_000_000 ether)
         makeInitialDeposit
@@ -91,14 +95,14 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         hoax(alice, depositAmount);
         vault.deposit{value: depositAmount}(alice);
 
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
 
         vm.prank(alice);
-        vault.transferStake(address(liquidStakingToken), amountToMakeLiquid, "");
+        vault.transferStake(address(sLyxToken), amountToMakeLiquid, "");
         assertEq(vault.balanceOf(alice), depositAmount - amountToMakeLiquid);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), amountToMakeLiquid);
+        assertEq(vault.balanceOf(address(sLyxToken)), amountToMakeLiquid);
 
-        assertEq(liquidStakingToken.balanceOf(alice), amountToMakeLiquid);
+        assertEq(sLyxToken.balanceOf(alice), amountToMakeLiquid);
     }
 
     function test_shouldRevertWhenCallingTransferStakeWithAmountLargerThanStake(uint256 amountToMakeLiquid)
@@ -116,18 +120,19 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         vault.deposit{value: depositAmount}(alice);
 
         bytes memory expectedRevertData =
-            abi.encodeWithSelector(Vault.InsufficientBalance.selector, depositAmount, amountToMakeLiquid);
+            abi.encodeWithSelector(StakingverseVault.InsufficientBalance.selector, depositAmount, amountToMakeLiquid);
 
         vm.prank(alice);
         vm.expectRevert(expectedRevertData);
-        vault.transferStake(address(liquidStakingToken), amountToMakeLiquid, "");
+        vault.transferStake(address(sLyxToken), amountToMakeLiquid, "");
     }
 
     function test_shouldNotAllowNonVaultToMint(address anyAddress) public beforeTest(1_000_000 ether) {
-        vm.assume(
-            anyAddress != address(0) && anyAddress != proxyAdmin && anyAddress != address(vault)
-                && anyAddress != address(liquidStakingToken)
-        );
+        vm.assume(anyAddress != address(0));
+        vm.assume(anyAddress != proxyAdmin);
+        vm.assume(anyAddress != address(vault));
+        vm.assume(anyAddress != address(sLyxToken));
+        vm.assume(anyAddress != address(sLyxTokenImplementation));
 
         vm.deal(anyAddress, 100 ether);
         vm.startPrank(anyAddress);
@@ -136,12 +141,12 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
 
         uint256 userBalance = vault.balanceOf(anyAddress);
         vm.expectRevert();
-        liquidStakingToken.onVaultStakeReceived(anyAddress, userBalance, "");
+        sLyxToken.onVaultStakeReceived(anyAddress, userBalance, "");
 
         vm.stopPrank();
     }
 
-    function test_shouldIncreaseLSTSharesInVaultWhenTwoUsersTransferStakeToLSTContract()
+    function test_shouldIncreaseSharesOfSLYXTokenContractAddressInVaultWhenTwoUsersTransferStakeToSLYXTokenContract()
         public
         beforeTest(1_000_000 ether)
         makeInitialDeposit
@@ -158,14 +163,14 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         vault.deposit{value: depositFirstUser}(firstUser);
 
         assertEq(vault.balanceOf(firstUser), depositFirstUser);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
 
         uint256 userBalance = vault.balanceOf(firstUser);
-        vault.transferStake(address(liquidStakingToken), userBalance, "");
+        vault.transferStake(address(sLyxToken), userBalance, "");
 
-        uint256 firstLSTSharesAmount = vault.balanceOf(address(liquidStakingToken));
+        uint256 firstSLYXTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
-        assertEq(firstLSTSharesAmount, depositFirstUser);
+        assertEq(firstSLYXTokenContractSharesAmount, depositFirstUser);
         assertEq(vault.balanceOf(firstUser), 0);
 
         // second deposit from another user,
@@ -177,21 +182,21 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         vault.deposit{value: depositSecondUser}(anotherUser);
 
         assertEq(vault.balanceOf(anotherUser), depositSecondUser);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), userBalance);
+        assertEq(vault.balanceOf(address(sLyxToken)), userBalance);
 
         uint256 anotherUserBalance = vault.balanceOf(anotherUser);
-        vault.transferStake(address(liquidStakingToken), anotherUserBalance, "");
+        vault.transferStake(address(sLyxToken), anotherUserBalance, "");
 
-        uint256 SecondLSTSharesAmount = vault.balanceOf(address(liquidStakingToken));
+        uint256 SecondSLYXTokenContractSharesAmount = vault.balanceOf(address(sLyxToken));
 
         // check that amount of shares for the Liquid Staking contract's address keep increasing
-        assertGt(SecondLSTSharesAmount, firstLSTSharesAmount);
-        assertEq(SecondLSTSharesAmount, userBalance + anotherUserBalance);
+        assertGt(SecondSLYXTokenContractSharesAmount, firstSLYXTokenContractSharesAmount);
+        assertEq(SecondSLYXTokenContractSharesAmount, userBalance + anotherUserBalance);
 
         vm.stopPrank();
     }
 
-    function test_shouldMintLSTWithDataWhenPassingDataToTransferStakeFunction(bytes memory anyRandomData)
+    function test_shouldMintSLYXTokensWithDataWhenPassingDataToTransferStakeFunction(bytes memory anyRandomData)
         public
         beforeTest(1_000_000 ether)
         makeInitialDeposit
@@ -206,7 +211,7 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         vault.deposit{value: depositAmount}(alice);
         uint256 shares = vault.balanceOf(alice);
 
-        vm.expectEmit(true, true, true, true, address(liquidStakingToken));
+        vm.expectEmit(true, true, true, true, address(sLyxToken));
 
         // Emit the event we expect to see, with from == address(0) since we are minting
         emit ILSP7DigitalAsset.Transfer({
@@ -218,10 +223,10 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
             data: anyRandomData
         });
 
-        vault.transferStake(address(liquidStakingToken), shares, anyRandomData);
+        vault.transferStake(address(sLyxToken), shares, anyRandomData);
 
         assertEq(vault.balanceOf(alice), 0);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), shares);
+        assertEq(vault.balanceOf(address(sLyxToken)), shares);
 
         vm.stopPrank();
     }
@@ -233,22 +238,22 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         startHoax(alice, depositAmount);
         vault.deposit{value: depositAmount}(alice);
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAmount.selector, 0);
+        bytes memory expectedRevertData = abi.encodeWithSelector(StakingverseVault.InvalidAmount.selector, 0);
 
         vm.expectRevert(expectedRevertData);
-        vault.transferStake(address(liquidStakingToken), 0, "");
+        vault.transferStake(address(sLyxToken), 0, "");
 
         vm.stopPrank();
     }
 
-    function test_cannotMintLSTTokensToZeroAddress() public beforeTest(1_000_000 ether) {
+    function test_cannotMintSLYXTokensToZeroAddress() public beforeTest(1_000_000 ether) {
         address alice = makeAddr("alice");
         uint256 depositAmount = 10 ether;
         startHoax(alice, depositAmount);
 
         vault.deposit{value: depositAmount}(alice);
 
-        bytes memory expectedRevertData = abi.encodeWithSelector(Vault.InvalidAddress.selector, address(0));
+        bytes memory expectedRevertData = abi.encodeWithSelector(StakingverseVault.InvalidAddress.selector, address(0));
 
         vm.expectRevert(expectedRevertData);
         vault.transferStake(address(0), 5 ether, "");
@@ -256,11 +261,8 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
         vm.stopPrank();
     }
 
-    function test_shouldRegisterLSTTokensInLSP5ReceivedAssetsWhenUniversalProfileTransferStakeToLSTContract()
-        public
-        beforeTest(1_000_000 ether)
-        makeInitialDeposit
-    {
+    function test_shouldRegisterSLYXTokensInLSP5ReceivedAssetsWhenUniversalProfileTransferStakeToSLYXTokenContractAddress(
+    ) public beforeTest(1_000_000 ether) makeInitialDeposit {
         address mainUPController = makeAddr("main controller");
         UniversalProfile user = UniversalProfileTestHelpers._setUpUniversalProfileLikeBrowserExtension(mainUPController);
 
@@ -271,7 +273,7 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
 
         user.execute(0, address(vault), depositAmount, abi.encodeCall(vault.deposit, (address(user))));
 
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
         assertEq(vault.balanceOf(address(user)), depositAmount);
 
         // Check LSP5 Received Assets are not set
@@ -281,24 +283,22 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
 
         // _LSP5_RECEIVED_ASSETS_MAP_KEY_PREFIX
 
-        user.execute(
-            0, address(vault), 0, abi.encodeCall(vault.transferStake, (address(liquidStakingToken), depositAmount, ""))
-        );
+        user.execute(0, address(vault), 0, abi.encodeCall(vault.transferStake, (address(sLyxToken), depositAmount, "")));
         assertEq(vault.balanceOf(address(user)), 0);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), depositAmount);
-        assertEq(liquidStakingToken.balanceOf(address(user)), depositAmount);
+        assertEq(vault.balanceOf(address(sLyxToken)), depositAmount);
+        assertEq(sLyxToken.balanceOf(address(user)), depositAmount);
 
         // Check LSP5 Received Assets data keys have been set
         assertEq(user.getData(_LSP5_RECEIVED_ASSETS_ARRAY_KEY), hex"00000000000000000000000000000001");
 
         assertEq(
             user.getData(LSP2Utils.generateArrayElementKeyAtIndex(_LSP5_RECEIVED_ASSETS_ARRAY_KEY, 0)),
-            abi.encodePacked(liquidStakingToken)
+            abi.encodePacked(sLyxToken)
         );
 
         assertEq(
             user.getData(
-                LSP2Utils.generateMappingKey(_LSP5_RECEIVED_ASSETS_MAP_KEY_PREFIX, bytes20(address(liquidStakingToken)))
+                LSP2Utils.generateMappingKey(_LSP5_RECEIVED_ASSETS_MAP_KEY_PREFIX, bytes20(address(sLyxToken)))
             ),
             abi.encodePacked(_INTERFACEID_LSP7, hex"00000000000000000000000000000000")
         );
@@ -307,7 +307,7 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
     }
 
     /// @dev Test depositing very small amounts
-    function test_deposit1WeiAndMintLST() public beforeTest(1_000_000 ether) makeInitialDeposit {
+    function test_deposit1WeiAndMintSLYXTokens() public beforeTest(1_000_000 ether) makeInitialDeposit {
         address alice = makeAddr("alice");
         uint256 depositAmount = 1 wei;
 
@@ -317,7 +317,7 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
 
         assertEq(address(vault).balance, _MINIMUM_REQUIRED_SHARES + depositAmount);
         assertEq(vault.balanceOf(alice), depositAmount);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), 0);
+        assertEq(vault.balanceOf(address(sLyxToken)), 0);
 
         // assert the vault state
         assertEq(vault.totalStaked(), 0);
@@ -334,15 +334,95 @@ contract TokenMint is LiquidStakingTokenBaseTest, UniversalProfileTestHelpers {
             data: ""
         });
 
-        vault.transferStake(address(liquidStakingToken), depositAmount, "");
+        vault.transferStake(address(sLyxToken), depositAmount, "");
 
         // assert the vault state
         assertEq(vault.balanceOf(alice), 0);
-        assertEq(vault.balanceOf(address(liquidStakingToken)), depositAmount);
+        assertEq(vault.balanceOf(address(sLyxToken)), depositAmount);
 
-        // assert the LST state
-        assertEq(liquidStakingToken.balanceOf(alice), depositAmount);
+        // assert the SLYXToken contract state
+        assertEq(sLyxToken.balanceOf(alice), depositAmount);
 
         vm.stopPrank();
+    }
+}
+
+contract DepositAndMintSLYXSameTx is SLYXTokenBaseTest {
+    function setUp() public {
+        _setUpSLYXToken();
+    }
+
+    function test_shouldDepositAndMintSLYXImmediatelyAndEmitCorrectEvents()
+        public
+        beforeTest(10_000 ether)
+        makeInitialDeposit
+    {
+        address alice = makeAddr("alice");
+        uint256 amount = 100 ether;
+        hoax(alice, amount);
+
+        // 1. LYX `Deposited` by alice for the SLYXToken contract
+        vm.expectEmit(true, true, false, false, address(vault));
+        emit IVault.Deposited({account: alice, beneficiary: address(sLyxToken), amount: amount});
+
+        // 2. sLYX tokens minted (`Transfer` with `from = address(0)`) to alice
+        vm.expectEmit(true, true, true, true, address(sLyxToken));
+        emit ILSP7DigitalAsset.Transfer({
+            operator: address(vault),
+            from: address(0),
+            to: alice,
+            amount: amount,
+            force: true,
+            data: ""
+        });
+
+        vault.deposit{value: amount}(address(sLyxToken));
+    }
+
+    function test_cannotCallDepositDirectlyOnSLYXTokenContract() public beforeTest(10_000 ether) makeInitialDeposit {
+        address alice = makeAddr("alice");
+        uint256 amount = 100 ether;
+        vm.deal(alice, amount);
+
+        bytes memory depositCalldata = abi.encodeWithSelector(vault.deposit.selector, address(sLyxToken));
+
+        bytes memory expectedRevertData =
+            abi.encodeWithSelector(NoExtensionFoundForFunctionSelector.selector, IVault.deposit.selector);
+
+        // Test revert with function call
+        vm.prank(alice);
+        vm.expectRevert(expectedRevertData);
+        IVault(address(sLyxToken)).deposit{value: amount}(address(sLyxToken));
+
+        // Test as low level call
+        vm.prank(alice);
+        (bool success, bytes memory revertData) = address(sLyxToken).call{value: amount}(depositCalldata);
+        assertFalse(success);
+        assertEq(revertData, expectedRevertData);
+    }
+
+    function test_DepositAndMintSLYXImmediatelyWorkTheSameAsDepositAndTransferStake()
+        public
+        beforeTest(10_000 ether)
+        makeInitialDeposit
+    {
+        address alice = makeAddr("alice");
+        vm.deal(alice, 100 ether);
+
+        uint256 amount = 50 ether;
+
+        vm.prank(alice);
+        vault.deposit{value: amount}(address(sLyxToken));
+
+        assertEq(vault.sharesOf(alice), 0);
+        assertEq(vault.sharesOf(address(sLyxToken)), amount);
+        assertEq(sLyxToken.balanceOf(alice), amount);
+
+        uint256 newAliceSLYXBalance = _depositAndClaimAllAsSLYXTokens(alice, amount, "");
+        assertEq(vault.sharesOf(alice), 0);
+        assertEq(vault.sharesOf(address(sLyxToken)), amount * 2);
+        assertEq(sLyxToken.balanceOf(alice), amount * 2);
+
+        assertEq(vault.sharesOf(address(sLyxToken)), newAliceSLYXBalance);
     }
 }

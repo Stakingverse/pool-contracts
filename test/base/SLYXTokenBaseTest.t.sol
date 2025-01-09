@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-// Test Helpers
+// Test helpers
 import {Test, console} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {IVault, Vault} from "../../src/Vault.sol";
+import {IVault, StakingverseVault} from "../../src/StakingverseVault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
 import {
     TransparentUpgradeableProxy,
@@ -14,17 +14,17 @@ import {
 
 // Libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 // Constants
 import {_LSP17_EXTENSION_PREFIX} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Constants.sol";
 
 // Contracts to test
-import {LiquidStakingToken} from "../../src/LiquidStakingToken.sol";
-import {LiquidStakingTokenAutoMintExtension} from "../../src/LiquidStakingTokenAutoMintExtension.sol";
+import {SLYXToken} from "../../src/SLYXToken.sol";
 
-abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
-    /// @dev There is a rounding error of 1 Wei accepted as loss in Universal.Page vault contract.
-    /// https://github.com/Universal-Page/contracts/blob/af4e4f9ea90620226c1aea2d225e73a7800782fc/src/pool/Vault.sol#L278-L280
+abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
+    /// @dev There is a rounding error of 1 Wei accepted as loss.
+    /// https://github.com/Stakingverse/pool-contracts/blob/main/src/StakingverseVault.sol#L283
     uint256 internal constant VAULT_ROUNDING_ERROR_LOSS = 1 wei;
 
     // from the vault
@@ -46,14 +46,12 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
     address tokenContractOwner;
 
     // implementation + proxy
-    Vault vaultImplementation;
-    Vault vault;
+    StakingverseVault vaultImplementation;
+    StakingverseVault vault;
 
-    // LST implementation + proxy
-    LiquidStakingToken liquidStakingTokenImplementation;
-    LiquidStakingToken liquidStakingToken;
-
-    address autoMintExtension;
+    // SLYXToken implementation + proxy
+    SLYXToken sLyxTokenImplementation;
+    SLYXToken sLyxToken;
 
     modifier beforeTest(uint256 depositLimit) {
         vm.assume(depositLimit < _MAX_VALIDATORS_SUPPORTED * 32 ether);
@@ -85,27 +83,28 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
         _;
     }
 
-    function _setUpLiquidStakingToken(bool setDepositExtension) internal {
+    function _setUpSLYXToken() internal {
         depositContract = new MockDepositContract();
 
-        proxyAdmin = address(1);
+        proxyAdmin = address(11);
 
-        vaultOwner = address(2);
-        vaultOperator = address(3);
-        vaultOracle = address(4);
-        vaultFeeRecipient = address(5);
-        tokenContractOwner = address(6);
+        vaultOwner = address(12);
+        vaultOperator = address(13);
+        vaultOracle = address(14);
+        vaultFeeRecipient = address(15);
+        tokenContractOwner = address(16);
 
         // Vault contracts (proxy and implementation) are already deployed on mainnet
         // but we cannot mock these addresses in Foundry tests.
         // The cheatcode vm.etch(...) set the bytecode, but does not initialize the state variables of the vault proxy,
         // (logic contract, admin, etc...) so any call to the proxy will fail.
         // Therefore, we need to deploy the new Vault contracts in the test suite.
-        vaultImplementation = new Vault();
+        vaultImplementation = new StakingverseVault();
 
-        bytes memory initializeCalldata = abi.encodeCall(Vault.initialize, (vaultOwner, vaultOperator, depositContract));
+        bytes memory initializeCalldata =
+            abi.encodeCall(StakingverseVault.initialize, (vaultOwner, vaultOperator, depositContract));
 
-        vault = Vault(
+        vault = StakingverseVault(
             payable(new TransparentUpgradeableProxy(address(vaultImplementation), proxyAdmin, initializeCalldata))
         );
 
@@ -120,40 +119,32 @@ abstract contract LiquidStakingTokenBaseTest is Test /*, FoundryRandom */ {
         vault.setDepositLimit(320 ether);
         vm.stopPrank();
 
-        liquidStakingTokenImplementation = new LiquidStakingToken();
+        sLyxTokenImplementation = new SLYXToken();
 
-        liquidStakingToken = LiquidStakingToken(
-            payable(new TransparentUpgradeableProxy(address(liquidStakingTokenImplementation), proxyAdmin, ""))
-        );
+        sLyxToken =
+            SLYXToken(payable(new TransparentUpgradeableProxy(address(sLyxTokenImplementation), proxyAdmin, "")));
 
-        liquidStakingToken.initialize(tokenContractOwner, vault);
-
-        if (setDepositExtension) {
-            autoMintExtension = address(new LiquidStakingTokenAutoMintExtension(vault, liquidStakingToken));
-
-            bytes32 extensionDataKeyForDeposit =
-                LSP2Utils.generateMappingKey(_LSP17_EXTENSION_PREFIX, IVault.deposit.selector);
-
-            // set extension for `deposit(address)` selector, to allow minting LST immediately while staking
-            vm.prank(tokenContractOwner);
-            liquidStakingToken.setData(extensionDataKeyForDeposit, abi.encodePacked(autoMintExtension));
-        }
+        sLyxToken.initialize(tokenContractOwner, vault);
     }
 
-    function _depositAndClaimAllAsLiquidStakingTokens(address user, uint256 depositAmount, bytes memory optionalData)
+    function _depositAndClaimAllAsSLYXTokens(address user, uint256 depositAmount, bytes memory optionalData)
         internal
-        returns (uint256 lstBalance)
+        returns (uint256 userSLyxBalance)
     {
-        // prevent `_toShare in the Vault to return 0
+        // prevent `_toShare` in the Vault to return 0
         vm.assume(depositAmount >= 1_000 wei);
 
         hoax(user, depositAmount);
         vault.deposit{value: depositAmount}(user);
 
-        uint256 shares = vault.balanceOf(user);
+        uint256 stakedAmount = vault.balanceOf(user);
         vm.prank(user);
-        vault.transferStake(address(liquidStakingToken), shares, optionalData);
+        vault.transferStake(address(sLyxToken), stakedAmount, optionalData);
 
-        return liquidStakingToken.balanceOf(user);
+        return sLyxToken.balanceOf(user);
+    }
+
+    function _toShares(uint256 amount) internal view returns (uint256) {
+        return Math.mulDiv(amount, vault.totalShares(), vault.totalAssets()) - VAULT_ROUNDING_ERROR_LOSS;
     }
 }

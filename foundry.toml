@@ -4,7 +4,7 @@ src = "src"
 out = "build"
 libs = ["lib", "node_modules"]
 evm_version = "berlin"
-gas_reports = ["LiquidStakingToken", "Vault"]
+gas_reports = ["SLYXToken", "src/StakingverseVault.sol"]
 extra_output_files = ["metadata"]
 fs_permissions = [
   { access = "read", path = "./scripts/" },

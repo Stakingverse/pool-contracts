@@ -1,13 +1,14 @@
 # Stakingverse Contracts
 
 Repository for the Stakingverse contracts. This repository includes the following contracts:
-- Vault 
-- Liquid Staking Token (sLYX) based on the LUKSO LSP7 standard. [Pegged to the Vault contract below](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract).
 
-| Contract                                 | Address                                      |
-| :--------------------------------------- | :------------------------------------------- |
-| Staking Vault Proxy                      | `0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04` |
-| Staking Vault Implementation (Singleton) | `0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4` |
+- Stakingverse Vault
+- Liquid Staking Token (sLYX) based on the LUKSO LSP7 standard (linked to the Vault contract below deployed on LUKSO Mainnet).
+
+| Contract                                 | Address                                                                                                                                        |
+| :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staking Vault Proxy                      | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
+| Staking Vault Implementation (Singleton) | `0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`                                                                                                   |
 
 ## Installation
 
@@ -77,7 +78,3 @@ slither src/LiquidStakingToken.sol --checklist --no-fail-pedantic --show-ignored
 # For the auto-mint LSP17 extension
 slither src/LiquidStakingTokenAutoMintExtension.sol --checklist --no-fail-pedantic --show-ignored-findings > slither_report_LiquidStakingTokenAutoMintExtension.md
 ```
-
-
-
-
