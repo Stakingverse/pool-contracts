@@ -17,15 +17,20 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {_LSP4_TOKEN_TYPE_TOKEN} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 
 // Errors
-import {InvalidRecipientForSLYXTokensTransfer, OnlyVaultAllowedToMint, InvalidVaultAddress} from "./Errors.sol";
+import {
+    InvalidRecipientForSLYXTokensTransfer, OnlyVaultAllowedToMintSLYX, InvalidVaultAddress
+} from "./SLYXErrors.sol";
 
-// Token staking is a process that involves holding assets in a contract to support protocol operations such as market making.
-// In exchange, the asset holders are rewarded with tokens which could be of the same type that they deposited, or not.
-//
-// The Simple Rewards contract allows users to stake native tokens, and are rewarded with a rewardsToken, which they must claim.
-// They can withdraw their stake at any time, but rewards stop accruing for them.
-// It is a permissionless contract that will distribute rewards during an interval defined on deployment. That is all that it is
-/// @dev For depositing native tokens
+/// @title Stakingverse Staked LYX (sLYX) Token contract.
+///
+/// @notice sLYX tokens represent liquid stake in the Stakingverse vault linked to this contract.
+/// - New sLYX tokens are minted by transferring LYX staked in the linked vault to this contract.
+/// - sLYX tokens can be burnt to convert them back to staked LYX.
+///
+/// @dev This contract includes also admin functionalities such as:
+/// - pausing minting and burning (as emergency response while a remediation is pending).
+/// - upgrading the contract (for security patches or future enhancements).
+/// These are implemented using OpenZeppelin's upgradeable libraries
 contract SLYXToken is
     IVaultStakeRecipient,
     ISLYX,
@@ -35,6 +40,8 @@ contract SLYXToken is
 {
     using Math for uint256;
 
+    /// @dev Address of the Vault contract linked to this SLYX Token contract.
+    /// sLYX tokens represent liquid stake in this linked vault.
     IVault public stakingVault;
 
     constructor() {
@@ -68,12 +75,20 @@ contract SLYXToken is
     }
 
     /// @notice Mint new sLYX tokens by transferring LYX staked in the Vault to this SLYXToken contract.
-    /// @dev This hook is called when calling the `transferStake(address,uint256,bytes)` function on the linked staking vault. Only the linked vault can call this function.
+    ///
+    /// @dev This hook is called when:
+    /// - calling the `transferStake(address,uint256,bytes)` function,
+    /// - or calling the `deposit(address)` function,
+    /// on the linked staking vault, passing the SLYXToken contract address as parameter for `address`. Only the linked vault can call this function.
     /// New sLYX minted can be monitored by listening for the `Transfer` event on the SLYXToken contract and filtering with `address(0)` as `from`.
     /// sLYX tokens can only be minted when the contract is not paused.
+    ///
+    /// @param from The address to mint sLYX for.
+    /// @param amount The amoount of staked LYX to be converted into sLYX (at the LYX / sLYX exchange rate).
+    /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were minted for its address.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
-            revert OnlyVaultAllowedToMint(msg.sender);
+            revert OnlyVaultAllowedToMintSLYX(msg.sender);
         }
 
         uint256 shares = Math.mulDiv(amount, stakingVault.totalShares(), stakingVault.totalAssets());
@@ -82,15 +97,19 @@ contract SLYXToken is
         _mint({to: from, amount: shares, force: true, data: data});
     }
 
-    /// @dev Burning function that allows to convert sLYX back to LYX only when the contract is not paused.
+    /// @notice Convert `amount` of sLYX tokens back to staked LYX (including any accumulated rewards).
+    ///
+    /// @dev Burning function to convert sLYX back to LYX at the sLYX / LYX conversion rate.
+    /// sLYX tokens can only be burnt when the contract is not paused.
+    ///
+    /// @param from The address to burn sLYX from its balance.
+    /// @param amount The amount of sLYX to convert to staked LYX.
+    /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were burnt from its balance and converted back to staked LYX.
     function burn(address from, uint256 amount, bytes memory data) public virtual override whenNotPaused {
         super.burn(from, amount, data);
     }
 
-    /// @dev Calculate the amount of LYX backing an amount of sLYX.
-    ///
-    /// Formula:
-    /// (sLYX amount * total stake held by sLYX contract in Vault) / total sLYX minted
+    /// @inheritdoc ISLYX
     function getNativeTokenValue(uint256 sLyxAmount) public view returns (uint256) {
         // Get the total number of sLYX tokens minted.
         uint256 totalSLYXMinted = totalSupply();
@@ -101,19 +120,15 @@ contract SLYXToken is
         return sLyxAmount.mulDiv(sLyxTokenContractStake, totalSLYXMinted);
     }
 
-    /// @dev Calculate the amount of sLYX backed by an amount of LYX.
-    ///
-    /// Formula:
-    /// (LYX amount * total sLYX minted) / total stake held by sLYX contract in Vault
-    function getSLYXTokenValue(uint256 lyxAmount) public view returns (uint256) {
+    /// @inheritdoc ISLYX
+    function getSLYXTokenValue(uint256 stakedLyxAmount) public view returns (uint256) {
         uint256 totalSLYXMinted = totalSupply();
-        uint256 sLYXTokenContractStake = stakingVault.balanceOf(address(this));
+        uint256 totalSLYXTokenContractStake = stakingVault.balanceOf(address(this));
 
-        return lyxAmount.mulDiv(totalSLYXMinted, sLYXTokenContractStake);
+        return stakedLyxAmount.mulDiv(totalSLYXMinted, totalSLYXTokenContractStake);
     }
 
-    /// @dev Get the current LYX / sLYX exchange rate
-    /// @return The amount of LYX backing 1 sLYX
+    /// @inheritdoc ISLYX
     function getExchangeRate() external view returns (uint256) {
         return getNativeTokenValue(1 ether);
     }
@@ -122,7 +137,10 @@ contract SLYXToken is
         return interfaceId == type(IVaultStakeRecipient).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    /// @dev Cannot transfer sLYX to the Vault itself or the SLYX Token contract itself otherwise they would get stuck.
+    /// @dev Prevent transferring sLYX tokens to:
+    /// - the linked Vault
+    /// - the SLYX Token contract itself
+    /// otherwise the tokens would get stuck.
     function _beforeTokenTransfer(address, /* from */ address to, uint256, /* amount */ bytes memory /* data */ )
         internal
         virtual

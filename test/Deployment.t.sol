@@ -2,6 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
+import {_INTERFACEID_LSP7} from "@lukso/lsp7-contracts/contracts/LSP7Constants.sol";
+import {IVaultStakeRecipient} from "../src/IVaultStakeRecipient.sol";
 
 // Constants
 import {
@@ -52,5 +54,10 @@ contract Deployment is SLYXTokenBaseTest {
 
     function test_SLYXTokenContractIsNotPausedOnDeployment() public view {
         assertEq(sLyxToken.paused(), false);
+    }
+
+    function test_supportsCorrectInterfaces() public view {
+        assertEq(sLyxToken.supportsInterface(type(IVaultStakeRecipient).interfaceId), true);
+        assertEq(sLyxToken.supportsInterface(_INTERFACEID_LSP7), true);
     }
 }
