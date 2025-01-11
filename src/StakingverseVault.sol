@@ -8,56 +8,56 @@ import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ERC165Checker} from "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IDepositContract, DEPOSIT_AMOUNT} from "./IDepositContract.sol";
+import {IVault} from "./IVault.sol";
+import {IVaultStakeRecipient} from "./IVaultStakeRecipient.sol";
 
-interface IVault {
-    event Deposited(address indexed account, address indexed beneficiary, uint256 amount);
-    event Withdrawn(address indexed account, address indexed beneficiary, uint256 amount);
-    event WithdrawalRequested(address indexed account, address indexed beneficiary, uint256 amount);
-    event Claimed(address indexed account, address indexed beneficiary, uint256 amount);
-    event DepositLimitChanged(uint256 previousLimit, uint256 newLimit);
-    event FeeChanged(uint32 previousFee, uint32 newFee);
-    event FeeRecipientChanged(address previousFeeRecipient, address newFeeRecipient);
-    event FeeClaimed(address indexed account, address indexed beneficiary, uint256 amount);
-    event RewardsDistributed(uint256 balance, uint256 rewards, uint256 fee);
-    event OracleEnabled(address indexed oracle, bool enabled);
-    event Rebalanced(
-        uint256 previousTotalStaked, uint256 previousTotalUnstaked, uint256 totalStaked, uint256 totalUnstaked
-    );
-    event StakeTransferred(address indexed from, address indexed to, uint256 amount, bytes data);
-    event OperatorChanged(address previousOperator, address newOperator);
-    event VaultRestrictionChanged(bool restricted);
-    event AllowedListChanged(address indexed depositor, bool indexed allowed);
-    event ValidatorRegistered(bytes pubkey, bytes signature, bytes32 depositDataRoot);
-
-    function depositLimit() external view returns (uint256);
-    function totalAssets() external view returns (uint256);
-    function totalShares() external view returns (uint256);
-    function totalStaked() external view returns (uint256);
-    function totalUnstaked() external view returns (uint256);
-    function totalPendingWithdrawal() external view returns (uint256);
-    function totalValidatorsRegistered() external view returns (uint256);
-    function fee() external view returns (uint32);
-    function feeRecipient() external view returns (address);
-    function totalFees() external view returns (uint256);
-    function restricted() external view returns (bool);
-    function balanceOf(address account) external view returns (uint256);
-    function sharesOf(address account) external view returns (uint256);
-    function pendingBalanceOf(address account) external view returns (uint256);
-    function claimableBalanceOf(address account) external view returns (uint256);
-    function deposit(address beneficiary) external payable;
-    function withdraw(uint256 amount, address beneficiary) external;
-    function claim(uint256 amount, address beneficiary) external;
-    function claimFees(uint256 amount, address beneficiary) external;
-    function transferStake(address to, uint256 amount, bytes calldata data) external;
-}
-
-interface IVaultStakeRecipient {
-    /// @notice Amount of stake have been transfered to the recipient.
-    /// @param from The address of the sender.
-    /// @param amount The amount of stake.
-    /// @param data Additional data.
-    function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external;
-}
+//                                                                     ..;===+.
+//                                                                 .:=iiiiii=+=
+//                                                              .=i))=;::+)i=+,
+//                                                           ,=i);)I)))I):=i=;
+//                                                        .=i==))))ii)))I:i++
+//                                                      +)+))iiiiiiii))I=i+:'
+//                                 .,:;;++++++;:,.       )iii+:::;iii))+i='
+//                              .:;++=iiiiiiiiii=++;.    =::,,,:::=i));=+'
+//                            ,;+==ii)))))))))))ii==+;,      ,,,:=i))+=:
+//                          ,;+=ii))))))IIIIII))))ii===;.    ,,:=i)=i+
+//                         ;+=ii)))IIIIITIIIIII))))iiii=+,   ,:=));=,
+//                       ,+=i))IIIIIITTTTTITIIIIII)))I)i=+,,:+i)=i+
+//                      ,+i))IIIIIITTTTTTTTTTTTI))IIII))i=::i))i='
+//                     ,=i))IIIIITLLTTTTTTTTTTIITTTTIII)+;+i)+i`
+//                     =i))IIITTLTLTTTTTTTTTIITTLLTTTII+:i)ii:'
+//                    +i))IITTTLLLTTTTTTTTTTTTLLLTTTT+:i)))=,
+//                    =))ITTTTTTTTTTTLTTTTTTLLLLLLTi:=)IIiii;
+//                   .i)IIITTTTTTTTLTTTITLLLLLLLT);=)I)))))i;
+//                   :))IIITTTTTLTTTTTTLLHLLLLL);=)II)IIIIi=:
+//                   :i)IIITTTTTTTTTLLLHLLHLL)+=)II)ITTTI)i=
+//                   .i)IIITTTTITTLLLHHLLLL);=)II)ITTTTII)i+
+//                   =i)IIIIIITTLLLLLLHLL=:i)II)TTTTTTIII)i'
+//                 +i)i)))IITTLLLLLLLLT=:i)II)TTTTLTTIII)i;
+//               +ii)i:)IITTLLTLLLLT=;+i)I)ITTTTLTTTII))i;
+//              =;)i=:,=)ITTTTLTTI=:i))I)TTTLLLTTTTTII)i;
+//            +i)ii::,  +)IIITI+:+i)I))TTTTLLTTTTTII))=,
+//          :=;)i=:,,    ,i++::i))I)ITTTTTTTTTTIIII)=+'
+//        .+ii)i=::,,   ,,::=i)))iIITTTTTTTTIIIII)=+
+//       ,==)ii=;:,,,,:::=ii)i)iIIIITIIITIIII))i+:'
+//      +=:))i==;:::;=iii)+)=  `:i)))IIIII)ii+'
+//    .+=:))iiiiiiii)))+ii;
+//   .+=;))iiiiii)));ii+
+//  .+=i:)))))))=+ii+
+// .;==i+::::=)i=;
+// ,+==iiiiii+,
+// `+=+++;`
+///
+/// @title Staking vault for Stakingverse
+///
+/// @notice This contract is designed to manage staking operations, including depositing, withdrawing, and claiming rewards for stakers.
+/// Stakers can also query their staked balance, shares, claimable balance (including rewards) and pending withdrawals.
+///
+/// @dev This contract includes admin functionalities (vault owner and operator) for fee management, adding new operators and registering validators in the deposit contract.
+/// It also includes a rebalancing mechanism done periodically by an oracle.
+///
+/// @dev The contract implements reentrancy protection, pausable functionality and an upgradeable pattern using OpenZeppelin's upgradeable libraries,
+/// ensuring safety and flexibility for future enhancements.
 
 contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
     uint32 private constant _FEE_BASIS = 100_000;
@@ -107,7 +107,10 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     mapping(address => uint256) private _pendingWithdrawals;
     mapping(address => bool) private _allowlisted;
     mapping(bytes => bool) private _registeredKeys;
-    // Total amount of pending withdrawals that can be claimed immidiately
+
+    /// @dev Total amount of pending withdrawals that can be claimed immediately.
+    /// Updated when the vault oracle rebalances the vault and when a user withdraw staked LYX via the `claim(...)` function.
+    /// @return The total amount (in wei) of pending withdrawals that can be claimed immediately.
     uint256 public totalClaimable;
     address public operator;
 
@@ -230,10 +233,12 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         }
     }
 
+    /// @inheritdoc IVault
     function sharesOf(address account) external view override returns (uint256) {
         return _shares[account];
     }
 
+    /// @inheritdoc IVault
     function balanceOf(address account) public view override returns (uint256) {
         return _toBalance(_shares[account]);
     }
@@ -291,6 +296,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         return Math.mulDiv(amount, totalShares, totalAssets());
     }
 
+    /// @inheritdoc IVault
     function deposit(address beneficiary) public payable override whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
@@ -331,6 +337,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         }
     }
 
+    /// @inheritdoc IVault
     function withdraw(uint256 amount, address beneficiary) external override nonReentrant whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
@@ -488,6 +495,11 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         }
     }
 
+    /// @inheritdoc IVault
+    /// @dev This function is used to transfer staked LYX from one address to another.
+    /// It increases the staked balance of the recipient, and decreases the staked balance of the sender.
+    /// If the `to` is a smart contract that support the `IVaultStakeRecipient` interface, the `onVaultStakeReceived(...)`
+    /// function will be called on the recipient (with the three parameters `account`, `amount` and `data`) to notify it that some staked LYX tokens were transferred to its address.
     function transferStake(address to, uint256 amount, bytes calldata data)
         external
         override
