@@ -141,11 +141,13 @@ contract SLYXToken is
     /// - the linked Vault
     /// - the SLYX Token contract itself
     /// otherwise the tokens would get stuck.
-    function _beforeTokenTransfer(address, /* from */ address to, uint256, /* amount */ bytes memory /* data */ )
-        internal
-        virtual
-        override
-    {
+    function _beforeTokenTransfer(
+        address, /* from */
+        address to,
+        uint256, /* amount */
+        bool, /* force */
+        bytes memory /* data */
+    ) internal virtual override {
         if (to == address(this) || to == address(stakingVault)) {
             revert InvalidRecipientForSLYXTokensTransfer(to);
         }
@@ -170,7 +172,7 @@ contract SLYXToken is
     /// This is based on the sLYX / staked LYX ratio. The function accepts rounding error of 1 Wei as loss.
     /// Note that the `transferStake` call is done in this hook after balances and total supply have been decreased
     /// to follow the check-effect-interaction pattern as best practice.
-    function _afterTokenTransfer(address from, address to, uint256 amount, bytes memory data)
+    function _afterTokenTransfer(address from, address to, uint256 amount, bool, /* force */ bytes memory data)
         internal
         virtual
         override
