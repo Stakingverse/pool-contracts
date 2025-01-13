@@ -17,15 +17,17 @@
     "Liquid Staking"
   ],
   "scripts": {
+    "clean": "forge clean",
     "build": "forge build",
     "build:sizes": "forge build --sizes",
+    "build:storage": "forge build --extra-output storageLayout",
+    "build:ir": "forge build --extra-output ir",
     "test": "forge test",
     "test:debug": "forge test -vvv",
     "test:invariant": "forge test --match-test invariant",
     "test:invariant:debug": "forge test --match-test invariant -vvv",
-    "test:coverage": "forge coverage --report summary",
-    "test:gas": "forge test --gas-report",
-    "gas-snapshot": "forge snapshot --desc --no-match-test ^skip_ && echo '\nGas Snapshots \n--------------' && cat .gas-snapshot"
+    "test:coverage": "forge coverage --report summary --no-match-test ^invariant",
+    "test:gas": "forge test --gas-report"
   },
   "dependencies": {
     "@lukso/lsp4-contracts": "./lukso-lsp4-contracts-0.16.0.tgz",
