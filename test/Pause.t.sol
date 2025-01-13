@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
-import {OwnableCallerNotTheOwner} from "@erc725/smart-contracts/contracts/errors.sol";
 
 /// @title Testing Pausable functionalities
 // ------------------------
@@ -15,7 +14,7 @@ contract Pausable is SLYXTokenBaseTest {
         vm.assume(anyAddress != tokenContractOwner);
         vm.assume(anyAddress != proxyAdmin);
 
-        vm.expectRevert(abi.encodeWithSelector(OwnableCallerNotTheOwner.selector, anyAddress));
+        vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(anyAddress);
         sLyxToken.pause();
     }
@@ -52,7 +51,7 @@ contract Pausable is SLYXTokenBaseTest {
 
         assertEq(sLyxToken.paused(), true);
 
-        vm.expectRevert(abi.encodeWithSelector(OwnableCallerNotTheOwner.selector, anyAddress));
+        vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(anyAddress);
         sLyxToken.unpause();
     }

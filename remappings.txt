@@ -1,4 +1,5 @@
 @erc725/smart-contracts/=node_modules/@erc725/smart-contracts/
+@erc725/smart-contracts-v8/=node_modules/@erc725/smart-contracts-v8/
 @lukso/=node_modules/@lukso/
 @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
 @openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/
