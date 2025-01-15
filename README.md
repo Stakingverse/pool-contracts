@@ -2,7 +2,7 @@
 
 ![cover image](./images/cover-image.png)
 
-[![Build + Test pass](https://github.com/Stakingverse/pool-contracts/actions/workflows/test.yml/badge.svg)](https://github.com/Stakingverse/pool-contracts/actions/workflows/test.yml) [![Code coverage](https://img.shields.io/badge/Code_Coverage-87%25-green?logo=codecrafters&logoColor=white)](./README.md#code-coverage) [![Discord](https://img.shields.io/badge/-Discord-darkblue?logo=discord&logoColor=white)](https://discord.com/invite/AE3KdFhpAQ) [![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?logo=telegram&logoColor=white)](https://docs.stakingverse.io/) [![Docs](https://img.shields.io/badge/-Docs-darkgreen?logo=readme&logoColor=white)](https://docs.stakingverse.io/)
+[![Build + Test pass](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml/badge.svg)](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml) [![Code coverage](https://img.shields.io/badge/Code_Coverage-87%25-green?logo=codecrafters&logoColor=white)](./README.md#code-coverage) [![Discord](https://img.shields.io/badge/-Discord-darkblue?logo=discord&logoColor=white)](https://discord.com/invite/AE3KdFhpAQ) [![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?logo=telegram&logoColor=white)](https://docs.stakingverse.io/) [![Docs](https://img.shields.io/badge/-Docs-darkgreen?logo=readme&logoColor=white)](https://docs.stakingverse.io/)
 
 Repository for the Stakingverse contracts. This repository includes the following contracts:
 
