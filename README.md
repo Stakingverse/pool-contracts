@@ -1,5 +1,9 @@
 # Stakingverse Contracts
 
+![cover image](./images/cover-image.png)
+
+[![Build + Test pass](https://github.com/Stakingverse/pool-contracts/actions/workflows/test.yml/badge.svg)](https://github.com/Stakingverse/pool-contracts/actions/workflows/test.yml) [![Code coverage](https://img.shields.io/badge/Code_Coverage-87%25-green?logo=codecrafters&logoColor=white)](./README.md#code-coverage) [![Discord](https://img.shields.io/badge/-Discord-darkblue?logo=discord&logoColor=white)](https://discord.com/invite/AE3KdFhpAQ) [![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?logo=telegram&logoColor=white)](https://docs.stakingverse.io/) [![Docs](https://img.shields.io/badge/-Docs-darkgreen?logo=readme&logoColor=white)](https://docs.stakingverse.io/)
+
 Repository for the Stakingverse contracts. This repository includes the following contracts:
 
 - Stakingverse Vault (based on [Universal Page vault's implementation](https://github.com/Universal-Page/contracts/blob/main/src/pool/Vault.sol))
@@ -43,11 +47,11 @@ npm run build
 # Build and display the contracts' bytecode sizes
 npm run build:sizes
 
-# Build contracts and
-build:storage
+# Build contracts with storage layout in generated build
+npm run build:storage
 
-#
-build:ir
+# Build contracts with IR as Yul code in generated build
+npm run build:ir
 ```
 
 ## Tests
@@ -106,10 +110,10 @@ Ran 11 test suites in 196.79s (520.99s CPU time): 95 tests passed, 0 failed, 0 s
 | Deployment Cost                      | Deployment Size |        |        |        |         |
 | 3271420                              | 15072           |        |        |        |         |
 | Function Name                        | min             | avg    | median | max    | # calls |
-| authorizeOperator                    | 11939           | 95932  | 96706  | 124192 | 7196    |
+| authorizeOperator                    | 11939           | 95885  | 96706  | 124192 | 7186    |
 | authorizedAmountFor                  | 897             | 897    | 897    | 897    | 258     |
 | balanceOf                            | 599             | 819    | 599    | 2599   | 4660    |
-| batchCalls                           | 811             | 811    | 811    | 811    | 27      |
+| batchCalls                           | 811             | 811    | 811    | 811    | 37      |
 | burn                                 | 3086            | 29034  | 10856  | 112721 | 1041    |
 | decimals                             | 2458            | 2458   | 2458   | 2458   | 2       |
 | deposit                              | 3699            | 3699   | 3699   | 3699   | 2       |
@@ -117,12 +121,12 @@ Ran 11 test suites in 196.79s (520.99s CPU time): 95 tests passed, 0 failed, 0 s
 | getNativeTokenValue                  | 3528            | 3528   | 3528   | 3528   | 7       |
 | getSLYXTokenValue                    | 3593            | 3593   | 3593   | 3593   | 5       |
 | initialize                           | 24632           | 175305 | 177588 | 177588 | 67      |
-| onVaultStakeReceived                 | 2814            | 54191  | 58576  | 189334 | 3113    |
+| onVaultStakeReceived                 | 2814            | 54189  | 58576  | 189334 | 3113    |
 | owner                                | 2376            | 2376   | 2376   | 2376   | 1       |
 | pause                                | 2520            | 14258  | 25809  | 25809  | 518     |
 | paused                               | 360             | 1358   | 360    | 2360   | 525     |
 | receive                              | 122             | 122    | 122    | 122    | 1       |
-| revokeOperator                       | 12595           | 12595  | 12595  | 12595  | 1       |
+| revokeOperator                       | 10126           | 10126  | 10126  | 10126  | 1       |
 | stakingVault                         | 2428            | 2428   | 2428   | 2428   | 257     |
 | supportsInterface                    | 429             | 1708   | 671    | 4024   | 8575    |
 | totalSupply                          | 350             | 1340   | 350    | 2350   | 521     |
