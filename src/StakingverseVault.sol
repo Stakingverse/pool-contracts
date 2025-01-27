@@ -297,7 +297,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     }
 
     /// @inheritdoc IVault
-    function deposit(address beneficiary) public payable override whenNotPaused {
+    function deposit(address beneficiary) public payable override nonReentrant whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
         }
@@ -411,7 +411,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     //
     // Rebalancing is not accounting for potential validator penalties. It is assumed that the penalties
     // shall not occur or shall be negligible.
-    function rebalance() external onlyOracle whenNotPaused {
+    function rebalance() external onlyOracle nonReentrant whenNotPaused {
         uint256 balance = address(this).balance;
 
         // account for completed withdrawals
@@ -503,8 +503,8 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     function transferStake(address to, uint256 amount, bytes calldata data)
         external
         override
-        whenNotPaused
         nonReentrant
+        whenNotPaused
     {
         if (restricted && !isAllowlisted(to)) {
             revert InvalidAddress(to);
