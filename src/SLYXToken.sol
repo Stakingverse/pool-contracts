@@ -84,6 +84,11 @@ contract SLYXToken is
     /// @param from The address to mint sLYX for.
     /// @param amount The amoount of staked LYX to be converted into sLYX (at the LYX / sLYX exchange rate).
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were minted for its address.
+    /// 
+    /// 
+    /// Warning: If using this SLYXToken contract with a newly deployed StakingverseVault, perform an initial deposit with a 
+    /// beneficiary address other than the SLYXToken contract address. This ensures correct share calculations and prevents 
+    /// minting an extra 1e3 SLYX initially due to the vault not subtracting `_MINIMUM_REQUIRED_SHARES` on the first deposit.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
             revert OnlyVaultAllowedToMintSLYX(msg.sender);
