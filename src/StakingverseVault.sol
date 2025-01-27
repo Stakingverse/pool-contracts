@@ -506,13 +506,19 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         whenNotPaused
         nonReentrant
     {
+        if (restricted && !isAllowlisted(to)) {
+            revert InvalidAddress(to);
+        }
+
         address account = msg.sender;
         if (amount == 0) {
             revert InvalidAmount(amount);
         }
+
         if (amount > balanceOf(account)) {
             revert InsufficientBalance(balanceOf(account), amount);
         }
+        
         uint256 shares = _toShares(amount);
         if (shares == 0) {
             revert InvalidAmount(shares);

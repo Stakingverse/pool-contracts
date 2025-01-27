@@ -105,6 +105,10 @@ contract SLYXToken is
     /// @param from The address to burn sLYX from its balance.
     /// @param amount The amount of sLYX to convert to staked LYX.
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were burnt from its balance and converted back to staked LYX.
+    /// 
+    /// Warning: note that if the link vault is set to restricted mode (= only a whitelist of stakers)
+    /// and sLYX tokens are transferred to a non-whitelisted address, this address will not be able to
+    /// burn the tokens and redeemed them for staked LYX.
     function burn(address from, uint256 amount, bytes memory data) public virtual override whenNotPaused {
         super.burn(from, amount, data);
     }
