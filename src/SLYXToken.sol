@@ -8,7 +8,6 @@ import {IVault, IVaultStakeRecipient} from "./StakingverseVault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
 // Modules
-import {LSP7DigitalAssetInitAbstract} from "@lukso/lsp7-contracts/contracts/LSP7DigitalAssetInitAbstract.sol";
 import {LSP7BurnableInitAbstract} from "@lukso/lsp7-contracts/contracts/extensions/LSP7BurnableInitAbstract.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -34,7 +33,6 @@ import {
 contract SLYXToken is
     IVaultStakeRecipient,
     ISLYX,
-    LSP7DigitalAssetInitAbstract,
     LSP7BurnableInitAbstract,
     PausableUpgradeable
 {
@@ -55,7 +53,7 @@ contract SLYXToken is
 
         __Pausable_init();
 
-        LSP7DigitalAssetInitAbstract._initialize({
+        super._initialize({
             name_: "Stakingverse Staked LYX (sLYX)",
             symbol_: "sLYX",
             newOwner_: tokenContractOwner_,
