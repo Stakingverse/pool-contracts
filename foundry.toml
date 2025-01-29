@@ -3,7 +3,7 @@
 src = "src"
 out = "build"
 libs = ["lib", "node_modules"]
-evm_version = "berlin"
+evm_version = "paris"
 gas_reports = ["SLYXToken", "src/StakingverseVault.sol"]
 extra_output_files = ["metadata"]
 fs_permissions = [
@@ -16,7 +16,7 @@ solc_version = "0.8.22"
 
 # Increase optimizer_runs
 optimizer = true
-optimizer-runs = 1_000
+optimizer-runs = 100_000
 
 [fuzz]
 # Fuzz more than the default 256
