@@ -8,7 +8,6 @@ import {IVault, IVaultStakeRecipient} from "./StakingverseVault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
 // Modules
-import {LSP7DigitalAssetInitAbstract} from "@lukso/lsp7-contracts/contracts/LSP7DigitalAssetInitAbstract.sol";
 import {LSP7BurnableInitAbstract} from "@lukso/lsp7-contracts/contracts/extensions/LSP7BurnableInitAbstract.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -34,7 +33,6 @@ import {
 contract SLYXToken is
     IVaultStakeRecipient,
     ISLYX,
-    LSP7DigitalAssetInitAbstract,
     LSP7BurnableInitAbstract,
     PausableUpgradeable
 {
@@ -55,7 +53,7 @@ contract SLYXToken is
 
         __Pausable_init();
 
-        LSP7DigitalAssetInitAbstract._initialize({
+        super._initialize({
             name_: "Stakingverse Staked LYX (sLYX)",
             symbol_: "sLYX",
             newOwner_: tokenContractOwner_,
@@ -86,6 +84,11 @@ contract SLYXToken is
     /// @param from The address to mint sLYX for.
     /// @param amount The amoount of staked LYX to be converted into sLYX (at the LYX / sLYX exchange rate).
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were minted for its address.
+    /// 
+    /// 
+    /// Warning: If using this SLYXToken contract with a newly deployed StakingverseVault, perform an initial deposit with a 
+    /// beneficiary address other than the SLYXToken contract address. This ensures correct share calculations and prevents 
+    /// minting an extra 1e3 SLYX initially due to the vault not subtracting `_MINIMUM_REQUIRED_SHARES` on the first deposit.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
             revert OnlyVaultAllowedToMintSLYX(msg.sender);
@@ -105,6 +108,10 @@ contract SLYXToken is
     /// @param from The address to burn sLYX from its balance.
     /// @param amount The amount of sLYX to convert to staked LYX.
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were burnt from its balance and converted back to staked LYX.
+    /// 
+    /// Warning: note that if the link vault is set to restricted mode (= only a whitelist of stakers)
+    /// and sLYX tokens are transferred to a non-whitelisted address, this address will not be able to
+    /// burn the tokens and redeemed them for staked LYX.
     function burn(address from, uint256 amount, bytes memory data) public virtual override whenNotPaused {
         super.burn(from, amount, data);
     }

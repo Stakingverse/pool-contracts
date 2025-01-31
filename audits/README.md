@@ -18,4 +18,4 @@ Previous audits for this Vault contract can be found in the [UniversalPage contr
 
 <br>
 
-- [MiloTruck Audit](#) - Planned - Audit of both StakingverseVault.sol and Liquid Staking contracts
+- [MiloTruck Audit](Stakingverse_Audit_MiloTruck.pdf) - Audit of both StakingverseVault.sol and Liquid Staking contracts

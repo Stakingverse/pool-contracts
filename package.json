@@ -30,9 +30,7 @@
     "test:gas": "forge test --gas-report"
   },
   "dependencies": {
-    "@lukso/lsp4-contracts": "./lukso-lsp4-contracts-0.16.0.tgz",
-    "@lukso/lsp7-contracts": "./lukso-lsp7-contracts-0.16.0.tgz",
-    "@lukso/lsp17contractextension-contracts": "./lukso-lsp17contractextension-contracts-0.16.0.tgz"
+    "@lukso/lsp7-contracts": "~0.16.3"
   },
   "devDependencies": {
     "prettier-plugin-solidity": "^1.4.2",
