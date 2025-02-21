@@ -17,6 +17,7 @@
     "Liquid Staking"
   ],
   "scripts": {
+    "lint": "solhint --config .solhint.json 'src/*.sol'",
     "clean": "forge clean",
     "build": "forge build",
     "build:sizes": "forge build --sizes",

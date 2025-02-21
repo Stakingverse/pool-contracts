@@ -70,7 +70,7 @@ npm run test:coverage
 # Run all the tests and get the gas usage of the functions of the contracts
 npm run test:gas
 
-# Run test against contract states of the mainnet fork
+# Run tests against contracts' states of LUKSO mainnet (fork environnement)
 npm run test:fork
 ```
 

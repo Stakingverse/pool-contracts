@@ -58,7 +58,8 @@ import {IVaultStakeRecipient} from "./IVaultStakeRecipient.sol";
 ///
 /// @dev The contract implements reentrancy protection, pausable functionality and an upgradeable pattern using OpenZeppelin's upgradeable libraries,
 /// ensuring safety and flexibility for future enhancements.
-
+///
+// solhint-disable max-states-count
 contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
     uint32 private constant _FEE_BASIS = 100_000;
     uint32 private constant _MIN_FEE = 0; // 0%
@@ -518,7 +519,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
         if (amount > balanceOf(account)) {
             revert InsufficientBalance(balanceOf(account), amount);
         }
-        
+
         uint256 shares = _toShares(amount);
         if (shares == 0) {
             revert InvalidAmount(shares);
