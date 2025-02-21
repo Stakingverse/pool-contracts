@@ -138,7 +138,7 @@ contract Invariants is SLYXTokenBaseTest {
         assertEq(address(vault).balance, 110 ether + _VAULT_INITIAL_DEPOSIT);
         assertEq(
             vault.balanceOf(address(sLyxToken)),
-            109 ether - 90 // TODO: would be good to clarify this calculation (108999999999999999910)
+            109 ether - 90 // TODO: clarify this calculation (108999999999999999910)
         );
 
         uint256 aliceSLYXValueInLYX = sLyxToken.getNativeTokenValue(aliceSLyxBalance);

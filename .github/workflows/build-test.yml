@@ -34,6 +34,9 @@ jobs:
           forge --version
           forge config
 
+      - name: Lint Solidity code
+        run: npm run lint
+
       - name: Build contracts
         id: build
         run: npm run build:sizes

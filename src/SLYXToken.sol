@@ -30,12 +30,7 @@ import {
 /// - pausing minting and burning (as emergency response while a remediation is pending).
 /// - upgrading the contract (for security patches or future enhancements).
 /// These are implemented using OpenZeppelin's upgradeable libraries
-contract SLYXToken is
-    IVaultStakeRecipient,
-    ISLYX,
-    LSP7BurnableInitAbstract,
-    PausableUpgradeable
-{
+contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, PausableUpgradeable {
     using Math for uint256;
 
     /// @dev Address of the Vault contract linked to this SLYX Token contract.
@@ -84,10 +79,10 @@ contract SLYXToken is
     /// @param from The address to mint sLYX for.
     /// @param amount The amoount of staked LYX to be converted into sLYX (at the LYX / sLYX exchange rate).
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were minted for its address.
-    /// 
-    /// 
-    /// Warning: If using this SLYXToken contract with a newly deployed StakingverseVault, perform an initial deposit with a 
-    /// beneficiary address other than the SLYXToken contract address. This ensures correct share calculations and prevents 
+    ///
+    ///
+    /// Warning: If using this SLYXToken contract with a newly deployed StakingverseVault, perform an initial deposit with a
+    /// beneficiary address other than the SLYXToken contract address. This ensures correct share calculations and prevents
     /// minting an extra 1e3 SLYX initially due to the vault not subtracting `_MINIMUM_REQUIRED_SHARES` on the first deposit.
     function onVaultStakeReceived(address from, uint256 amount, bytes calldata data) external whenNotPaused {
         if (msg.sender != address(stakingVault)) {
@@ -108,7 +103,7 @@ contract SLYXToken is
     /// @param from The address to burn sLYX from its balance.
     /// @param amount The amount of sLYX to convert to staked LYX.
     /// @param data Any optional data to send when notifying the `from` address via its `universalReceiver(...)` function that some sLYX tokens were burnt from its balance and converted back to staked LYX.
-    /// 
+    ///
     /// Warning: note that if the link vault is set to restricted mode (= only a whitelist of stakers)
     /// and sLYX tokens are transferred to a non-whitelisted address, this address will not be able to
     /// burn the tokens and redeemed them for staked LYX.
@@ -169,6 +164,9 @@ contract SLYXToken is
             if (to == implementation) {
                 revert InvalidRecipientForSLYXTokensTransfer(to);
             }
+
+            // If the call to retrieve the implementation address fails, we do not revert to not block token transfers.
+            // solhint-disable-next-line no-empty-blocks
         } catch {}
     }
 

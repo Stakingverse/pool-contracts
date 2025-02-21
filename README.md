@@ -65,10 +65,13 @@ npm run test:invariant
 
 # Run all the tests and get the code coverage of the test suite
 # NB: Invariant tests are skipped as they keep the test hanging
-npm run test:coverage -- --no-match-test ^invariant
+npm run test:coverage
 
 # Run all the tests and get the gas usage of the functions of the contracts
 npm run test:gas
+
+# Run tests against contracts' states of LUKSO mainnet (fork environnement)
+npm run test:fork
 ```
 
 You can also display more log informations for debugging using the `:debug` suffix when running the tests with npm.

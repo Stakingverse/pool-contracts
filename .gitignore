@@ -8,3 +8,6 @@ build/
 
 # Environnement variables
 .env*
+
+# Apple
+.DS_Store

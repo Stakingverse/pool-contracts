@@ -299,7 +299,6 @@ contract Rewards is SLYXTokenBaseTest {
 
         // TLDR: amount of underlying assets (staked LYX) changes without the amount of sLYX shares reflecting that.
         // This inflation makes all the sLYX token in circulation more valuable, meaning someone buying sLYX token "will get less than they would have expected".
-        // TODO: improve this test with assertions that reflect that better
 
         // 5. someone else deposit 10 LYX on behalf of the SLYXToken contract address.
         hoax(bob, 10 ether);
