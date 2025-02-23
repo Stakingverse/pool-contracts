@@ -12,7 +12,14 @@ import {
 import {SLYXToken} from "../src/SLYXToken.sol";
 
 import {IVault} from "../src/IVault.sol";
-import {PROXY_ADMIN, SLYX_TOKEN_PROXY} from "./MainnetConstants.sol";
+
+// Uncomment and use these constants instead to deploy on testnet
+import {
+    PROXY_ADMIN_TESTNET,
+    SLYX_TOKEN_PROXY_TESTNET
+} from "./TestnetConstants.sol";
+
+// import {PROXY_ADMIN, SLYX_TOKEN_PROXY} from "./MainnetConstants.sol";
 
 contract DeploySLYXTokenImplementation is Script {
     function run() external {
@@ -80,7 +87,7 @@ contract ChangeAdmin is Script {
         address signerAddress = vm.addr(signerPrivateKey);
 
         require(
-            signerAddress == PROXY_ADMIN,
+            signerAddress == PROXY_ADMIN_TESTNET,
             string.concat(
                 "SLYXTokenScript.s.sol:ChangeAdmin: caller should be the proxy admin. Signer address used: ",
                 Strings.toHexString(signerAddress)
@@ -90,7 +97,7 @@ contract ChangeAdmin is Script {
         address newProxyAdmin = vm.envAddress("PROXY_ADMIN_ADDRESS");
 
         vm.broadcast(signerAddress);
-        IProxy(SLYX_TOKEN_PROXY).changeAdmin(newProxyAdmin);
+        IProxy(SLYX_TOKEN_PROXY_TESTNET).changeAdmin(newProxyAdmin);
 
         console.log(
             string.concat(

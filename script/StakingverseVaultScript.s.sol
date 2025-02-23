@@ -12,10 +12,14 @@ import {
 import {StakingverseVault} from "../src/StakingverseVault.sol";
 
 import {DepositContract} from "../src/IDepositContract.sol";
-import {PROXY_ADMIN, VAULT_PROXY} from "./MainnetConstants.sol";
 
-uint32 constant SERVICE_FEE = 8_000; // 8%
-uint256 constant DEPOSIT_LIMIT = 2000 * 32 ether;
+// Uncomment and use these constants instead to deploy on testnet
+import {PROXY_ADMIN_TESTNET, VAULT_PROXY_TESTNET} from "./TestnetConstants.sol";
+
+// import {PROXY_ADMIN, VAULT_PROXY} from "./MainnetConstants.sol";
+
+// uint32 constant SERVICE_FEE = 8_000; // 8%
+// uint256 constant DEPOSIT_LIMIT = 2000 * 32 ether;
 
 contract DeployVaultImplementation is Script {
     function run() external {
@@ -79,32 +83,32 @@ contract DeployVaultProxy is Script {
     }
 }
 
-contract ChangeAdmin is Script {
-    function run() external {
-        uint256 signerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address signerAddress = vm.addr(signerPrivateKey);
+// contract ChangeAdmin is Script {
+//     function run() external {
+//         uint256 signerPrivateKey = vm.envUint("PRIVATE_KEY");
+//         address signerAddress = vm.addr(signerPrivateKey);
 
-        require(
-            signerAddress == PROXY_ADMIN,
-            string.concat(
-                "StakingverseVaultScript.s.sol:ChangeAdmin: caller should be the proxy admin. Signer address used: ",
-                Strings.toHexString(signerAddress)
-            )
-        );
+//         require(
+//             signerAddress == PROXY_ADMIN,
+//             string.concat(
+//                 "StakingverseVaultScript.s.sol:ChangeAdmin: caller should be the proxy admin. Signer address used: ",
+//                 Strings.toHexString(signerAddress)
+//             )
+//         );
 
-        address newProxyAdmin = vm.envAddress("PROXY_ADMIN_ADDRESS");
+//         address newProxyAdmin = vm.envAddress("PROXY_ADMIN_ADDRESS");
 
-        vm.broadcast(signerAddress);
-        IProxy(VAULT_PROXY).changeAdmin(newProxyAdmin);
+//         vm.broadcast(signerAddress);
+//         IProxy(VAULT_PROXY).changeAdmin(newProxyAdmin);
 
-        console.log(
-            string.concat(
-                "Vault proxy admin changed to ",
-                Strings.toHexString(newProxyAdmin)
-            )
-        );
-    }
-}
+//         console.log(
+//             string.concat(
+//                 "Vault proxy admin changed to ",
+//                 Strings.toHexString(newProxyAdmin)
+//             )
+//         );
+//     }
+// }
 
 contract UpgradeVault is Script {
     function run() external {
@@ -112,7 +116,7 @@ contract UpgradeVault is Script {
         address signerAddress = vm.addr(signerPrivateKey);
 
         require(
-            signerAddress == PROXY_ADMIN,
+            signerAddress == PROXY_ADMIN_TESTNET,
             string.concat(
                 "StakingverseVaultScript.s.sol:UpgradeVault: caller should be the proxy admin. Signer address used: ",
                 Strings.toHexString(signerAddress)
@@ -123,8 +127,8 @@ contract UpgradeVault is Script {
             "VAULT_IMPLEMENTATION_ADDRESS"
         );
 
-        vm.broadcast(signerAddress);
-        IProxy(VAULT_PROXY).upgradeTo(newVaultImplementationAddress);
+        vm.broadcast(signerPrivateKey);
+        IProxy(VAULT_PROXY_TESTNET).upgradeTo(newVaultImplementationAddress);
 
         console.log(
             string.concat(
