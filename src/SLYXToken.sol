@@ -153,21 +153,6 @@ contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, Pau
         if (to == address(this) || to == address(stakingVault)) {
             revert InvalidRecipientForSLYXTokensTransfer(to);
         }
-
-        // Check we did not pass the Vault implementation / logic contract address
-        // Currently deployed Vault is implemented as a Transparent Upgradable Proxy (ERC1967)
-        // at address:
-        // The call to retrieve the implementation address is wrapped in a `try catch` block to prevent scenario
-        // where this assumption is broken, meaning another proxy pattern is used.
-        // If that is the case, the call would revert, preventing transfer of any tokens.
-        try ITransparentProxy(address(stakingVault)).implementation() returns (address implementation) {
-            if (to == implementation) {
-                revert InvalidRecipientForSLYXTokensTransfer(to);
-            }
-
-            // If the call to retrieve the implementation address fails, we do not revert to not block token transfers.
-            // solhint-disable-next-line no-empty-blocks
-        } catch {}
     }
 
     /// @dev If tokens are being burnt:
