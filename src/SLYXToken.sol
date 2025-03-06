@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.22;
 
-// Interfaces
-import {ITransparentUpgradeableProxy as ITransparentProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IVault, IVaultStakeRecipient} from "./StakingverseVault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
@@ -117,7 +114,7 @@ contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, Pau
         uint256 totalSLYXMinted = totalSupply();
 
         // Use 1:1 ratio if no rETH is minted
-        if (totalSLYXMinted == 0) return sLyxAmount; 
+        if (totalSLYXMinted == 0) return sLyxAmount;
 
         // Get the total LYX balance held by the sLYX contract on the Vault.
         uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));

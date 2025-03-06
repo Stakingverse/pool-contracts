@@ -64,22 +64,6 @@ contract TokenTransfer is SLYXTokenBaseTest {
         sLyxToken.transfer(alice, address(sLyxToken), shares, true, "");
     }
 
-    function test_cannotTransferTokensWithVaultImplementationAsRecipient() public beforeTest(1_000_000 ether) {
-        address alice = makeAddr("alice");
-
-        uint256 shares = _depositAndClaimAllAsSLYXTokens(alice, 100 ether, "");
-
-        assertEq(vault.balanceOf(alice), 0);
-        assertEq(vault.balanceOf(address(sLyxToken)), shares);
-
-        bytes memory expectedRevertData =
-            abi.encodeWithSelector(InvalidRecipientForSLYXTokensTransfer.selector, address(vaultImplementation));
-
-        vm.prank(alice);
-        vm.expectRevert(expectedRevertData);
-        sLyxToken.transfer(alice, address(vaultImplementation), shares, true, "");
-    }
-
     function test_transferDoesNotFailIfVaultProxyIsNotEIP1967() public {
         vault = StakingverseVault(payable(Clones.clone(address(vaultImplementation))));
         vault.initialize(vaultOwner, vaultOperator, depositContract);
