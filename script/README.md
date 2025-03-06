@@ -69,12 +69,42 @@ SLYX_TOKEN_IMPLEMENTATION_ADDRESS=""
 source .env
 ```
 
-2.3. Run the scripts below
+2.3. Run the scripts to deploy the proxy
 
 ```bash
 # [Simulation] Deploy the SLYX Token proxy (dry run)
 forge script --chain 4201 script/SLYXTokenScript.s.sol:DeploySLYXTokenProxy --rpc-url $LUKSO_TESTNET_RPC_URL -vvvv
 
-# [Transaction] Deploy the SLYX Token implementation + verify it
+# [Transaction] Deploy the SLYX Token proxy + verify it
 forge script --chain 4201 script/SLYXTokenScript.s.sol:DeploySLYXTokenProxy --rpc-url $LUKSO_TESTNET_RPC_URL --broadcast --verify --verifier blockscout --verifier-url $BLOCKSCOUT_TESTNET_API_URL -vvvv
+```
+
+2.4. Run the script below to upgrade
+
+```bash
+# [Simulation] Upgrade the SLYX Token proxy to a new implementation (dry run)
+forge script --chain 4201 script/SLYXTokenScript.s.sol:UpgradeSLYXToken --rpc-url $LUKSO_TESTNET_RPC_URL -vvvv
+
+# [Transaction] Upgrade the SLYX Token proxy to a new implementation
+forge script --chain 4201 script/SLYXTokenScript.s.sol:UpgradeSLYXToken --rpc-url $LUKSO_TESTNET_RPC_URL --broadcast -vvvv
+```
+
+### Note on running the scripts with a ledger
+
+Put in your `.env` this variable:
+
+```bash
+SIGNER_ADDRESS_DERIVATION_PATH="m/44'/60'/3'/0/0"
+```
+
+then
+
+```
+source .env
+```
+
+then run the script with the `--ledger` command.
+
+```bash
+forge script --ledger --hd-paths $SIGNER_ADDRESS_DERIVATION_PATH --chain 4201 script/SLYXTokenScript.s.sol:DeploySLYXTokenImplementation --rpc-url $LUKSO_TESTNET_RPC_URL --broadcast --verify --verifier blockscout --verifier-url $BLOCKSCOUT_TESTNET_API_URL -vvvv
 ```

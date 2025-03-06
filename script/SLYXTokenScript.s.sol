@@ -36,8 +36,6 @@ contract DeploySLYXTokenImplementation is Script {
     }
 }
 
-/// Warning: SLYXToken proxy is already deployed on LUKSO Mainnet.
-/// Use this script for testing purpose only. For instance to deploy a proxy on LUKSO Testnet.
 contract DeploySLYXTokenProxy is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -81,6 +79,30 @@ contract DeploySLYXTokenProxy is Script {
     }
 }
 
+contract UpgradeSLYXToken is Script {
+    function run() external {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        address newSLYXTokenImplementation = vm.envAddress(
+            "NEW_SLYX_TOKEN_IMPLEMENTATION_ADDRESS"
+        );
+
+        vm.startBroadcast(deployerPrivateKey);
+        IProxy(SLYX_TOKEN_PROXY_TESTNET).upgradeTo(
+            // new logic contract
+            newSLYXTokenImplementation
+        );
+        vm.stopBroadcast();
+
+        console.log(
+            string.concat(
+                "SLYXToken proxy upgraded to implementation at ",
+                Strings.toHexString(newSLYXTokenImplementation)
+            )
+        );
+    }
+}
+
 contract ChangeAdmin is Script {
     function run() external {
         uint256 signerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -96,7 +118,7 @@ contract ChangeAdmin is Script {
 
         address newProxyAdmin = vm.envAddress("PROXY_ADMIN_ADDRESS");
 
-        vm.broadcast(signerAddress);
+        vm.broadcast(signerPrivateKey);
         IProxy(SLYX_TOKEN_PROXY_TESTNET).changeAdmin(newProxyAdmin);
 
         console.log(
