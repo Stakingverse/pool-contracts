@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.22;
 
-// Interfaces
-import {ITransparentUpgradeableProxy as ITransparentProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IVault, IVaultStakeRecipient} from "./StakingverseVault.sol";
 import {ISLYX} from "./ISLYX.sol";
 
@@ -115,6 +112,10 @@ contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, Pau
     function getNativeTokenValue(uint256 sLyxAmount) public view returns (uint256) {
         // Get the total number of sLYX tokens minted.
         uint256 totalSLYXMinted = totalSupply();
+
+        // Use 1:1 ratio if no sLYX is minted
+        if (totalSLYXMinted == 0) return sLyxAmount;
+
         // Get the total LYX balance held by the sLYX contract on the Vault.
         uint256 sLyxTokenContractStake = stakingVault.balanceOf(address(this));
 
@@ -125,6 +126,10 @@ contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, Pau
     /// @inheritdoc ISLYX
     function getSLYXTokenValue(uint256 stakedLyxAmount) public view returns (uint256) {
         uint256 totalSLYXMinted = totalSupply();
+
+        // Use 1:1 ratio if no sLYX is minted
+        if (totalSLYXMinted == 0) return stakedLyxAmount;
+
         uint256 totalSLYXTokenContractStake = stakingVault.balanceOf(address(this));
 
         return stakedLyxAmount.mulDiv(totalSLYXMinted, totalSLYXTokenContractStake);
@@ -153,21 +158,6 @@ contract SLYXToken is IVaultStakeRecipient, ISLYX, LSP7BurnableInitAbstract, Pau
         if (to == address(this) || to == address(stakingVault)) {
             revert InvalidRecipientForSLYXTokensTransfer(to);
         }
-
-        // Check we did not pass the Vault implementation / logic contract address
-        // Currently deployed Vault is implemented as a Transparent Upgradable Proxy (ERC1967)
-        // at address:
-        // The call to retrieve the implementation address is wrapped in a `try catch` block to prevent scenario
-        // where this assumption is broken, meaning another proxy pattern is used.
-        // If that is the case, the call would revert, preventing transfer of any tokens.
-        try ITransparentProxy(address(stakingVault)).implementation() returns (address implementation) {
-            if (to == implementation) {
-                revert InvalidRecipientForSLYXTokensTransfer(to);
-            }
-
-            // If the call to retrieve the implementation address fails, we do not revert to not block token transfers.
-            // solhint-disable-next-line no-empty-blocks
-        } catch {}
     }
 
     /// @dev If tokens are being burnt:
