@@ -7,7 +7,7 @@ out/
 build/
 
 # Environnement variables
-.env*
+.env
 
 # Apple
 .DS_Store

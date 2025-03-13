@@ -9,10 +9,13 @@ Repository for the Stakingverse contracts. This repository includes the followin
 - Stakingverse Vault (based on [Universal Page vault's implementation](https://github.com/Universal-Page/contracts/blob/main/src/pool/Vault.sol))
 - Liquid Staking Token (sLYX) based on the LUKSO LSP7 standard (linked to the Vault contract below deployed on LUKSO Mainnet).
 
-| Contract                                 | Address                                                                                                                                        |
-| :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| Staking Vault Proxy                      | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
-| Staking Vault Implementation (Singleton) | `0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`                                                                                                   |
+| Contract                                                        | Address on LUKSO Mainnet                                                                                                                       |
+| :-------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staking Vault Proxy                                             | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
+| Staking Vault `Vault.sol` Implementation (old)                  | [`0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`](https://explorer.lukso.network/address/0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4?tab=contract) |
+| Staking Vault `StakingverseVault.sol` Implementation (upgraded) | _To be deployed_                                                                                                                               |
+| SLYX Token Proxy                                                | [`0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d`](https://explorer.lukso.network/address/0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d?tab=contract) |
+| SLYX Token Implementation                                       | _To be deployed_                                                                                                                               |
 
 - [Stakingverse Contracts](#stakingverse-contracts)
   - [Installation](#installation)
@@ -25,6 +28,8 @@ Repository for the Stakingverse contracts. This repository includes the followin
     - [Storage layout](#storage-layout)
     - [Intermediate representation - IR](#intermediate-representation---ir)
     - [Slither](#slither)
+  - [Audits](#audits)
+  - [Development \& Testing](#development--testing)
 
 ## Installation
 
@@ -505,3 +510,19 @@ slither src/StakingverseVault.sol --checklist --no-fail-pedantic --show-ignored-
 # For sLYX token contract
 slither src/SLYXToken.sol --checklist --no-fail-pedantic --show-ignored-findings > slither_report_sLYX.md
 ```
+
+## Audits
+
+A list of smart contract audits can be found under the [`audits/`](./audits/) folder.
+
+## Development & Testing
+
+If you are looking to integrate your project to interact with Stakingverse Vault and SLYX Token contract, you can develop and test on LUKSO Testnet. Both contracts are deployed at the following addresses on LUKSO Testnet:
+
+| Contract                                                           | Address on LUKSO Testnet                                                                                                                                         |
+| :----------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staking Vault Proxy                                                | [`0x420458294FC1AdAdA36773866A33BC2C8E8E68eF`](https://explorer.execution.testnet.lukso.network/address/0x420458294FC1AdAdA36773866A33BC2C8E8E68eF?tab=contract) |
+| Staking Vault `Vault.sol` Implementation (old from Universal.Page) | [`0xb5a696855897726fD62DB29779C1658BD3e4115c`](https://explorer.execution.testnet.lukso.network/address/0xb5a696855897726fD62DB29779C1658BD3e4115c?tab=contract) |
+| Staking Vault `StakingverseVault.sol` Implementation (upgraded)    | [`0x0D2A54fB503bA6a6D9c4eb18303A0da4CBe63E77`](https://explorer.execution.testnet.lukso.network/address/0x0D2A54fB503bA6a6D9c4eb18303A0da4CBe63E77?tab=contract) |
+| SLYX Token Proxy                                                   | [`0x796b1fdcDE61280EF51B94f5a68132941856ec0c`](https://explorer.execution.testnet.lukso.network/address/0x796b1fdcDE61280EF51B94f5a68132941856ec0c?tab=contract) |
+| SLYX Token Implementation                                          | [`0x17945B83a73c8036849727df50F6a579287F6A09`](https://explorer.execution.testnet.lukso.network/address/0x17945B83a73c8036849727df50F6a579287F6A09?tab=contract) |
