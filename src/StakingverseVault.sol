@@ -63,7 +63,7 @@ import {IVaultStakeRecipient} from "./IVaultStakeRecipient.sol";
 contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
     uint32 private constant _FEE_BASIS = 100_000;
     uint32 private constant _MIN_FEE = 0; // 0%
-    uint32 private constant _MAX_FEE = 15_000; // 15%
+    uint32 private constant _MAX_FEE = 30_000; // 30%
     uint256 private constant _MAX_VALIDATORS_SUPPORTED = 1_000_000;
     uint256 private constant _MINIMUM_REQUIRED_SHARES = 1e3;
 
