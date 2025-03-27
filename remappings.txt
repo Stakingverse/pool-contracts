@@ -1,8 +1,13 @@
 @erc725/smart-contracts/=node_modules/@erc725/smart-contracts/
 @erc725/smart-contracts-v8/=node_modules/@erc725/smart-contracts-v8/
 @lukso/=node_modules/@lukso/
-@openzeppelin/=node_modules/@openzeppelin/
+@openzeppelin/contracts-v4.9.0/=node_modules/@openzeppelin/contracts-v4.9.0/
 solidity-bytes-utils/=node_modules/solidity-bytes-utils/
+
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 murky/=lib/murky/src/
+
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+UniversalPage/contracts=lib/contracts/

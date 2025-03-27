@@ -8,8 +8,16 @@ gas_reports = ["SLYXToken", "StakingverseVault"]
 extra_output_files = ["metadata"]
 fs_permissions = [
   { access = "read", path = "./scripts/" },
+  { access = "read", path = "./build/" },
   { access = "read-write", path = "./artifacts/" },
 ]
+
+
+# For foundry upgrades
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
 
 # solidity compiler
 solc_version = "0.8.22"
