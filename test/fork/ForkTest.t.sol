@@ -5,8 +5,8 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {StakingverseVault} from "../src/StakingverseVault.sol";
-import {IDepositContract} from "../src/IDepositContract.sol";
+import {StakingverseVault} from "../../src/StakingverseVault.sol";
+import {IDepositContract} from "../../src/IDepositContract.sol";
 import {
     TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy as IProxy
@@ -16,7 +16,7 @@ import {
 import {SLYXToken} from "../../src/SLYXToken.sol";
 
 // Constants
-import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET, SLYX_TOKEN_PROXY_MAINNET} from "../script/MainnetConstants.sol";
+import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET, SLYX_TOKEN_PROXY_MAINNET} from "../../script/MainnetConstants.sol";
 
 // Contract addresses deployed on mainnet
 address payable constant VAULT_IMPLEMENTATION = payable(0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4);
