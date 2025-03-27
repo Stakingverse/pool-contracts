@@ -2,10 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {
-    Upgrades,
-    Options
-} from "openzeppelin-foundry-upgrades/LegacyUpgrades.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/LegacyUpgrades.sol";
 import {IDepositContract} from "../src/IDepositContract.sol";
 
 // Contracts to test
@@ -18,33 +15,23 @@ import {Vault as VaultV1} from "../src/Vault.sol";
 import {StakingverseVault} from "../src/StakingverseVault.sol";
 
 // Constants
-import {
-    PROXY_ADMIN_MAINNET,
-    VAULT_PROXY_MAINNET
-} from "../script/MainnetConstants.sol";
+import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET} from "../script/MainnetConstants.sol";
 
 /// @dev Test to ensure that the upgrade is safe and the new implementation contract is valid, using OpenZeppelin Foundry upgrades library
 /// This ensures that the new implementation contract is safe to upgrade to and that the storage layout is compatible with the proxy linked to the current implementation
 contract MainnetForkUpgradeTest is Test {
-    address constant CURRENT_VAULT_IMPLEMENTATION =
-        0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4;
+    address constant CURRENT_VAULT_IMPLEMENTATION = 0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4;
 
     function test_shouldReturnCorrectProxyAdminAddress() public view {
         // CHECK current proxy admin address before upgrading
-        assertEq(
-            Upgrades.getAdminAddress(VAULT_PROXY_MAINNET),
-            PROXY_ADMIN_MAINNET
-        );
+        assertEq(Upgrades.getAdminAddress(VAULT_PROXY_MAINNET), PROXY_ADMIN_MAINNET);
 
         // TODO: upgrade and check the proxy admin address has NOT changed
     }
 
     function test_shouldReturnCorrectVaultImplementationAddress() public view {
         // CHECK current implementation address before upgrading
-        assertEq(
-            Upgrades.getImplementationAddress(VAULT_PROXY_MAINNET),
-            CURRENT_VAULT_IMPLEMENTATION
-        );
+        assertEq(Upgrades.getImplementationAddress(VAULT_PROXY_MAINNET), CURRENT_VAULT_IMPLEMENTATION);
 
         // TODO: upgrade and check the vault implementation address has changed
     }
@@ -88,17 +75,9 @@ contract MainnetForkUpgradeTest is Test {
         opts.referenceContract = "Vault.sol";
         opts.unsafeAllow = "constructor";
 
-        address newStakingverseVaultAddress = Upgrades.prepareUpgrade(
-            "StakingverseVault.sol",
-            opts
-        );
-        console.log(
-            unicode"🧪 Test deploying new StakingverseVault implementation!"
-        );
-        console.log(
-            unicode"🚀 New StakingverseVault deployed at address: %s",
-            newStakingverseVaultAddress
-        );
+        address newStakingverseVaultAddress = Upgrades.prepareUpgrade("StakingverseVault.sol", opts);
+        console.log(unicode"🧪 Test deploying new StakingverseVault implementation!");
+        console.log(unicode"🚀 New StakingverseVault deployed at address: %s", newStakingverseVaultAddress);
     }
 
     function test_tryDeployingNewImplementationAndUpgrade() public {
@@ -116,22 +95,14 @@ contract MainnetForkUpgradeTest is Test {
         // TODO: open an issue with OpenZeppelin Foundry to add a check for this
         opts.unsafeAllow = "constructor";
 
-        Upgrades.upgradeProxy(
-            VAULT_PROXY_MAINNET,
-            "StakingverseVault.sol",
-            "",
-            opts,
-            PROXY_ADMIN_MAINNET
-        );
+        Upgrades.upgradeProxy(VAULT_PROXY_MAINNET, "StakingverseVault.sol", "", opts, PROXY_ADMIN_MAINNET);
     }
 }
 
 /// @dev Test with local anvil chain
 contract LocalUpgradeTest is Test {
-    address constant CURRENT_VAULT_OWNER =
-        0x983aBC616f2442bAB7a917E6bb8660Df8b01F3bF;
-    address constant CURRENT_VAULT_OPERATOR =
-        0x983aBC616f2442bAB7a917E6bb8660Df8b01F3bF;
+    address constant CURRENT_VAULT_OWNER = 0x983aBC616f2442bAB7a917E6bb8660Df8b01F3bF;
+    address constant CURRENT_VAULT_OPERATOR = 0x983aBC616f2442bAB7a917E6bb8660Df8b01F3bF;
 
     address proxyAdmin;
 
@@ -149,20 +120,12 @@ contract LocalUpgradeTest is Test {
         // 2. Deploy the proxy and initialize it
         bytes memory initializeCalldata = abi.encodeCall(
             currentVaultImplementation.initialize,
-            (
-                CURRENT_VAULT_OWNER,
-                CURRENT_VAULT_OPERATOR,
-                IDepositContract(0xCAfe00000000000000000000000000000000CAfe)
-            )
+            (CURRENT_VAULT_OWNER, CURRENT_VAULT_OPERATOR, IDepositContract(0xCAfe00000000000000000000000000000000CAfe))
         );
 
         vaultProxy = IProxy(
             address(
-                new TransparentUpgradeableProxy(
-                    address(currentVaultImplementation),
-                    proxyAdmin,
-                    initializeCalldata
-                )
+                new TransparentUpgradeableProxy(address(currentVaultImplementation), proxyAdmin, initializeCalldata)
             )
         );
     }
@@ -180,12 +143,6 @@ contract LocalUpgradeTest is Test {
         // but also an actual `initialize(...)` function that is called by the proxy.
         opts.unsafeAllow = "constructor";
 
-        Upgrades.upgradeProxy(
-            VAULT_PROXY_MAINNET,
-            "StakingverseVault.sol",
-            "",
-            opts,
-            PROXY_ADMIN_MAINNET
-        );
+        Upgrades.upgradeProxy(VAULT_PROXY_MAINNET, "StakingverseVault.sol", "", opts, PROXY_ADMIN_MAINNET);
     }
 }

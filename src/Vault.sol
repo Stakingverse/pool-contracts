@@ -1,23 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.22;
 
-import {
-    OwnableUnset
-} from "@erc725/smart-contracts/contracts/custom/OwnableUnset.sol";
-import {
-    ReentrancyGuardUpgradeable
-} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {
-    PausableUpgradeable
-} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {OwnableUnset} from "@erc725/smart-contracts/contracts/custom/OwnableUnset.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IDepositContract, DEPOSIT_AMOUNT} from "../../src/IDepositContract.sol";
 
-contract Vault is
-    OwnableUnset,
-    ReentrancyGuardUpgradeable,
-    PausableUpgradeable
-{
+contract Vault is OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
     uint32 private constant _FEE_BASIS = 100_000;
     uint32 private constant _MIN_FEE = 0; // 0%
     uint32 private constant _MAX_FEE = 15_000; // 15%
@@ -25,11 +15,7 @@ contract Vault is
     uint256 private constant _MINIMUM_REQUIRED_SHARES = 1e3;
 
     error InvalidAmount(uint256 amount);
-    error WithdrawalFailed(
-        address account,
-        address beneficiary,
-        uint256 amount
-    );
+    error WithdrawalFailed(address account, address beneficiary, uint256 amount);
     error ClaimFailed(address account, address beneficiary, uint256 amount);
     error DepositLimitExceeded(uint256 totalValue, uint256 depositLimit);
     error CallerNotOracle(address account);
@@ -40,44 +26,18 @@ contract Vault is
     error ValidatorAlreadyRegistered(bytes pubkey);
     error CallerNotOperator(address account);
 
-    event Deposited(
-        address indexed account,
-        address indexed beneficiary,
-        uint256 amount
-    );
-    event Withdrawn(
-        address indexed account,
-        address indexed beneficiary,
-        uint256 amount
-    );
-    event WithdrawalRequested(
-        address indexed account,
-        address indexed beneficiary,
-        uint256 amount
-    );
-    event Claimed(
-        address indexed account,
-        address indexed beneficiary,
-        uint256 amount
-    );
+    event Deposited(address indexed account, address indexed beneficiary, uint256 amount);
+    event Withdrawn(address indexed account, address indexed beneficiary, uint256 amount);
+    event WithdrawalRequested(address indexed account, address indexed beneficiary, uint256 amount);
+    event Claimed(address indexed account, address indexed beneficiary, uint256 amount);
     event DepositLimitChanged(uint256 previousLimit, uint256 newLimit);
     event FeeChanged(uint32 previousFee, uint32 newFee);
-    event FeeRecipientChanged(
-        address previousFeeRecipient,
-        address newFeeRecipient
-    );
-    event FeeClaimed(
-        address indexed account,
-        address indexed beneficiary,
-        uint256 amount
-    );
+    event FeeRecipientChanged(address previousFeeRecipient, address newFeeRecipient);
+    event FeeClaimed(address indexed account, address indexed beneficiary, uint256 amount);
     event RewardsDistributed(uint256 balance, uint256 rewards, uint256 fee);
     event OracleEnabled(address indexed oracle, bool enabled);
     event Rebalanced(
-        uint256 previousTotalStaked,
-        uint256 previousTotalUnstaked,
-        uint256 totalStaked,
-        uint256 totalUnstaked
+        uint256 previousTotalStaked, uint256 previousTotalUnstaked, uint256 totalStaked, uint256 totalUnstaked
     );
 
     // limit of total deposits in wei.
@@ -126,11 +86,7 @@ contract Vault is
         _disableInitializers();
     }
 
-    function initialize(
-        address owner_,
-        address operator_,
-        IDepositContract depositContract_
-    ) external initializer {
+    function initialize(address owner_, address operator_, IDepositContract depositContract_) external initializer {
         if (address(depositContract_) == address(0)) {
             revert InvalidAddress(address(depositContract_));
         }
@@ -193,8 +149,8 @@ contract Vault is
 
     function setDepositLimit(uint256 newDepositLimit) external onlyOperator {
         if (
-            newDepositLimit < totalValidatorsRegistered * DEPOSIT_AMOUNT ||
-            newDepositLimit > _MAX_VALIDATORS_SUPPORTED * DEPOSIT_AMOUNT
+            newDepositLimit < totalValidatorsRegistered * DEPOSIT_AMOUNT
+                || newDepositLimit > _MAX_VALIDATORS_SUPPORTED * DEPOSIT_AMOUNT
         ) {
             revert InvalidAmount(newDepositLimit);
         }
@@ -243,20 +199,12 @@ contract Vault is
         return _pendingWithdrawals[account];
     }
 
-    function claimableBalanceOf(
-        address account
-    ) external view returns (uint256) {
+    function claimableBalanceOf(address account) external view returns (uint256) {
         uint256 pendingWithdrawal = _pendingWithdrawals[account];
-        return
-            pendingWithdrawal > totalClaimable
-                ? totalClaimable
-                : pendingWithdrawal;
+        return pendingWithdrawal > totalClaimable ? totalClaimable : pendingWithdrawal;
     }
 
-    function claim(
-        uint256 amount,
-        address beneficiary
-    ) external nonReentrant whenNotPaused {
+    function claim(uint256 amount, address beneficiary) external nonReentrant whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
         }
@@ -273,7 +221,7 @@ contract Vault is
         _pendingWithdrawals[account] -= amount;
         totalPendingWithdrawal -= amount;
         totalClaimable -= amount;
-        (bool success, ) = beneficiary.call{value: amount}("");
+        (bool success,) = beneficiary.call{value: amount}("");
         if (!success) {
             revert ClaimFailed(account, beneficiary, amount);
         }
@@ -281,11 +229,7 @@ contract Vault is
     }
 
     function totalAssets() public view returns (uint256) {
-        return
-            totalStaked +
-            totalUnstaked +
-            totalClaimable -
-            totalPendingWithdrawal;
+        return totalStaked + totalUnstaked + totalClaimable - totalPendingWithdrawal;
     }
 
     function _toBalance(uint256 shares) private view returns (uint256) {
@@ -316,10 +260,8 @@ contract Vault is
         if (amount == 0) {
             revert InvalidAmount(amount);
         }
-        uint256 newTotalDeposits = Math.max(
-            totalValidatorsRegistered * DEPOSIT_AMOUNT,
-            totalStaked + totalUnstaked
-        ) + amount;
+        uint256 newTotalDeposits =
+            Math.max(totalValidatorsRegistered * DEPOSIT_AMOUNT, totalStaked + totalUnstaked) + amount;
         if (newTotalDeposits > depositLimit) {
             revert DepositLimitExceeded(newTotalDeposits, depositLimit);
         }
@@ -342,10 +284,7 @@ contract Vault is
         emit Deposited(account, beneficiary, amount);
     }
 
-    function withdraw(
-        uint256 amount,
-        address beneficiary
-    ) external nonReentrant whenNotPaused {
+    function withdraw(uint256 amount, address beneficiary) external nonReentrant whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
         }
@@ -366,9 +305,7 @@ contract Vault is
         _shares[account] -= shares;
         totalShares -= shares;
 
-        uint256 immediateAmount = amount > totalUnstaked
-            ? totalUnstaked
-            : amount;
+        uint256 immediateAmount = amount > totalUnstaked ? totalUnstaked : amount;
         uint256 delayedAmount = amount - immediateAmount;
 
         totalUnstaked -= immediateAmount;
@@ -376,7 +313,7 @@ contract Vault is
         _pendingWithdrawals[beneficiary] += delayedAmount;
 
         if (immediateAmount > 0) {
-            (bool success, ) = beneficiary.call{value: immediateAmount}("");
+            (bool success,) = beneficiary.call{value: immediateAmount}("");
             if (!success) {
                 revert WithdrawalFailed(account, beneficiary, immediateAmount);
             }
@@ -388,10 +325,7 @@ contract Vault is
         }
     }
 
-    function claimFees(
-        uint256 amount,
-        address beneficiary
-    ) external nonReentrant whenNotPaused {
+    function claimFees(uint256 amount, address beneficiary) external nonReentrant whenNotPaused {
         if (beneficiary == address(0)) {
             revert InvalidAddress(beneficiary);
         }
@@ -406,7 +340,7 @@ contract Vault is
             revert InsufficientBalance(totalFees, amount);
         }
         totalFees -= amount;
-        (bool success, ) = beneficiary.call{value: amount}("");
+        (bool success,) = beneficiary.call{value: amount}("");
         if (!success) {
             revert FeeClaimFailed(account, beneficiary, amount);
         }
@@ -429,21 +363,16 @@ contract Vault is
         // account for completed withdrawals
         uint256 pendingWithdrawal = totalPendingWithdrawal - totalClaimable;
         uint256 completedWithdrawal = Math.min(
-            (balance - totalFees - totalUnstaked - totalClaimable) /
-                DEPOSIT_AMOUNT, // actual completed withdrawals
-            pendingWithdrawal /
-                DEPOSIT_AMOUNT + // pending withdrawals
-                (pendingWithdrawal % DEPOSIT_AMOUNT == 0 ? 0 : 1) // partial withdrawals
+            (balance - totalFees - totalUnstaked - totalClaimable) / DEPOSIT_AMOUNT, // actual completed withdrawals
+            pendingWithdrawal / DEPOSIT_AMOUNT // pending withdrawals
+                + (pendingWithdrawal % DEPOSIT_AMOUNT == 0 ? 0 : 1) // partial withdrawals
         ) * DEPOSIT_AMOUNT;
 
         // adjust staked balance for completed withdrawals
         uint256 staked = totalStaked - completedWithdrawal;
 
         // take out any claimable balances from unstaked balance prior to calculating rewards.
-        uint256 unstaked = balance -
-            totalFees -
-            totalClaimable -
-            completedWithdrawal;
+        uint256 unstaked = balance - totalFees - totalClaimable - completedWithdrawal;
 
         // account for withdrawals to claim later
         uint256 claimable = totalClaimable + completedWithdrawal;
@@ -462,11 +391,7 @@ contract Vault is
         if (unstaked - partialWithdrawal > totalUnstaked) {
             uint256 rewards = unstaked - partialWithdrawal - totalUnstaked;
             uint256 feeAmount = Math.mulDiv(rewards, fee, _FEE_BASIS);
-            emit RewardsDistributed(
-                totalStaked + totalUnstaked,
-                rewards,
-                feeAmount
-            );
+            emit RewardsDistributed(totalStaked + totalUnstaked, rewards, feeAmount);
             totalFees += feeAmount;
             unstaked -= feeAmount;
         }
@@ -477,17 +402,16 @@ contract Vault is
         totalStaked = staked;
     }
 
-    function isValidatorRegistered(
-        bytes calldata pubkey
-    ) external view returns (bool) {
+    function isValidatorRegistered(bytes calldata pubkey) external view returns (bool) {
         return _registeredKeys[pubkey];
     }
 
-    function registerValidator(
-        bytes calldata pubkey,
-        bytes calldata signature,
-        bytes32 depositDataRoot
-    ) public onlyOracle nonReentrant whenNotPaused {
+    function registerValidator(bytes calldata pubkey, bytes calldata signature, bytes32 depositDataRoot)
+        public
+        onlyOracle
+        nonReentrant
+        whenNotPaused
+    {
         if (totalUnstaked < DEPOSIT_AMOUNT) {
             revert InsufficientBalance(totalUnstaked, DEPOSIT_AMOUNT);
         }
@@ -498,16 +422,8 @@ contract Vault is
         totalValidatorsRegistered += 1;
         totalStaked += DEPOSIT_AMOUNT;
         totalUnstaked -= DEPOSIT_AMOUNT;
-        bytes memory withdrawalCredentials = abi.encodePacked(
-            hex"010000000000000000000000",
-            address(this)
-        );
-        _depositContract.deposit{value: DEPOSIT_AMOUNT}(
-            pubkey,
-            withdrawalCredentials,
-            signature,
-            depositDataRoot
-        );
+        bytes memory withdrawalCredentials = abi.encodePacked(hex"010000000000000000000000", address(this));
+        _depositContract.deposit{value: DEPOSIT_AMOUNT}(pubkey, withdrawalCredentials, signature, depositDataRoot);
     }
 
     function registerValidators(
