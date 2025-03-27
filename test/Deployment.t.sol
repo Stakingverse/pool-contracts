@@ -43,6 +43,15 @@ contract Deployment is SLYXTokenBaseTest {
         assertEq(sLyxToken.totalSupply(), 0);
     }
 
+    // This test ensures two things. Calling `getExchangeRate()` initially:
+    // 1. will not revert
+    // 2. will return 1:1 ratio
+    function test_callingGetExhangeRateWhenNoSLYXTokensHaveBeenMintedInitially() public view {
+        assertEq(sLyxToken.getExchangeRate(), 1 ether);
+        assertEq(sLyxToken.getNativeTokenValue(12345 ether), 12345 ether);
+        assertEq(sLyxToken.getSLYXTokenValue(12345 ether), 12345 ether);
+    }
+
     function test_shouldHaveSetCorrectLinkedStakingVault() public view {
         assertEq(address(sLyxToken.stakingVault()), address(vault));
     }

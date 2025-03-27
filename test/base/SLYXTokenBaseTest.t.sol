@@ -98,19 +98,22 @@ abstract contract SLYXTokenBaseTest is Test /*, FoundryRandom */ {
         // but we cannot mock these addresses in Foundry tests.
         // The cheatcode vm.etch(...) set the bytecode, but does not initialize the state variables of the vault proxy,
         // (logic contract, admin, etc...) so any call to the proxy will fail.
-        // Therefore, we need to deploy the new Vault contracts in the test suite.
         vaultImplementation = new StakingverseVault();
 
         bytes memory initializeCalldata =
             abi.encodeCall(StakingverseVault.initialize, (vaultOwner, vaultOperator, depositContract));
 
+        // Therefore, we need to deploy the new Vault contracts in the test suite...
         vault = StakingverseVault(
             payable(new TransparentUpgradeableProxy(address(vaultImplementation), proxyAdmin, initializeCalldata))
         );
 
+        // ...and mock the `implementation()` function to force returning the address of the implementation this proxy is linked to.
         vm.mockCall(
             address(vault), abi.encodeWithSelector(IProxy.implementation.selector), abi.encode(vaultImplementation)
         );
+
+        // configure the vault
 
         vm.startPrank(vaultOperator);
         vault.enableOracle(vaultOracle, true);
