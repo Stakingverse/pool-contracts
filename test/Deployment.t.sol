@@ -2,7 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
-import {_INTERFACEID_LSP7} from "@lukso/lsp7-contracts/contracts/LSP7Constants.sol";
+import {
+    _INTERFACEID_LSP7
+} from "@lukso/lsp7-contracts/contracts/LSP7Constants.sol";
 import {IVaultStakeRecipient} from "../src/IVaultStakeRecipient.sol";
 
 // Constants
@@ -22,13 +24,20 @@ contract Deployment is SLYXTokenBaseTest {
 
     function test_deploymentParametersOfSLYXToken() public view {
         // We need to re-encode in memory, as in the ERC725Y storage, strings are not stored as [string.length][string]
-        bytes memory encodedName = abi.encode(sLyxToken.getData(_LSP4_TOKEN_NAME_KEY));
+        bytes memory encodedName = abi.encode(
+            sLyxToken.getData(_LSP4_TOKEN_NAME_KEY)
+        );
         string memory name = abi.decode(encodedName, (string));
 
-        bytes memory encodedSymbol = abi.encode(sLyxToken.getData(_LSP4_TOKEN_SYMBOL_KEY));
+        bytes memory encodedSymbol = abi.encode(
+            sLyxToken.getData(_LSP4_TOKEN_SYMBOL_KEY)
+        );
         string memory symbol = abi.decode(encodedSymbol, (string));
 
-        uint256 tokenType = abi.decode(sLyxToken.getData(_LSP4_TOKEN_TYPE_KEY), (uint256));
+        uint256 tokenType = abi.decode(
+            sLyxToken.getData(_LSP4_TOKEN_TYPE_KEY),
+            (uint256)
+        );
         uint256 decimals = sLyxToken.decimals();
         address owner = sLyxToken.owner();
 
@@ -41,6 +50,18 @@ contract Deployment is SLYXTokenBaseTest {
 
     function test_totalSupplyOfSLYXIsZeroInitially() public view {
         assertEq(sLyxToken.totalSupply(), 0);
+    }
+
+    // This test ensures two things. Calling `getExchangeRate()` initially:
+    // 1. will not revert
+    // 2. will return 1:1 ratio
+    function test_callingGetExhangeRateWhenNoSLYXTokensHaveBeenMintedInitially()
+        public
+        view
+    {
+        assertEq(sLyxToken.getExchangeRate(), 1 ether);
+        assertEq(sLyxToken.getNativeTokenValue(12345 ether), 12345 ether);
+        assertEq(sLyxToken.getSLYXTokenValue(12345 ether), 12345 ether);
     }
 
     function test_shouldHaveSetCorrectLinkedStakingVault() public view {
@@ -57,7 +78,10 @@ contract Deployment is SLYXTokenBaseTest {
     }
 
     function test_supportsCorrectInterfaces() public view {
-        assertEq(sLyxToken.supportsInterface(type(IVaultStakeRecipient).interfaceId), true);
+        assertEq(
+            sLyxToken.supportsInterface(type(IVaultStakeRecipient).interfaceId),
+            true
+        );
         assertEq(sLyxToken.supportsInterface(_INTERFACEID_LSP7), true);
     }
 }
