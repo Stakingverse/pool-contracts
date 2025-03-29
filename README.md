@@ -526,3 +526,14 @@ If you are looking to integrate your project to interact with Stakingverse Vault
 | Staking Vault `StakingverseVault.sol` Implementation (upgraded)    | [`0x0D2A54fB503bA6a6D9c4eb18303A0da4CBe63E77`](https://explorer.execution.testnet.lukso.network/address/0x0D2A54fB503bA6a6D9c4eb18303A0da4CBe63E77?tab=contract) |
 | SLYX Token Proxy                                                   | [`0x796b1fdcDE61280EF51B94f5a68132941856ec0c`](https://explorer.execution.testnet.lukso.network/address/0x796b1fdcDE61280EF51B94f5a68132941856ec0c?tab=contract) |
 | SLYX Token Implementation                                          | [`0x17945B83a73c8036849727df50F6a579287F6A09`](https://explorer.execution.testnet.lukso.network/address/0x17945B83a73c8036849727df50F6a579287F6A09?tab=contract) |
+
+## 🛡 License
+
+This project is licensed under the **Business Source License 1.1 (BUSL-1.1)**.
+
+- The code is **source-available**, and can be freely read and modified.
+- **Production use is not allowed** without a commercial license.
+- All modified versions must be **shared under the same terms**.
+- On **April 1, 2027**, the project will be relicensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+
+For details, see [LICENSE](./LICENSE) and [LICENSE-GPL-3.0](./LICENSE-GPL-3.0).
