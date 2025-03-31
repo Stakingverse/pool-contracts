@@ -15,7 +15,7 @@ import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET} from "../../script/MainnetCons
 
 /// @dev Test to ensure that the upgrade is safe and the new implementation contract is valid, using OpenZeppelin Foundry upgrades library
 /// This ensures that the new implementation contract is safe to upgrade to and that the storage layout is compatible with the proxy linked to the current implementation
-contract MainnetForkUpgradeTest is Test {
+contract ForkMainnetUpgradeTest is Test {
     address constant CURRENT_VAULT_IMPLEMENTATION = 0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4;
 
     function test_shouldReturnCorrectProxyAdminAddress() public view {

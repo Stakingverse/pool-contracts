@@ -34,11 +34,11 @@ Repository for the Stakingverse contracts. This repository includes the followin
 ## Installation
 
 ```bash
-# Install LUKSO and OpenZeppelin contracts dependencies
+# Install LUKSO LSP7 dependencies
 npm install
 
-# Install forge contracts testing library
-forge install https://github.com/foundry-rs/forge-std --no-commit --no-git
+# Install git submodule dependencies OZ contracts + forge library
+git submodule update --init --recursive
 ```
 
 ## Build

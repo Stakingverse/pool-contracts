@@ -8,6 +8,7 @@ gas_reports = ["SLYXToken", "StakingverseVault"]
 extra_output_files = ["metadata"]
 fs_permissions = [
   { access = "read", path = "./scripts/" },
+  { access = "read", path = "./test/" },
   { access = "read", path = "./build/" },
   { access = "read-write", path = "./artifacts/" },
 ]
