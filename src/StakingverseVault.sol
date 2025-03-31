@@ -77,14 +77,14 @@ import {IVaultStakeRecipient} from "./IVaultStakeRecipient.sol";
 ///
 /// @title Staking Vault for Stakingverse
 ///
-/// @notice This contract is designed to manage staking operations, including depositing, withdrawing, and claiming rewards for stakers.
-/// Stakers can also query their staked balance, shares, claimable balance (including rewards) and pending withdrawals.
+/// @notice This contract is designed to manage staking operations, including depositing, withdrawing, and claiming rewards on behalf of stakers.
+/// Stakers can also query their staked balance, shares, claimable balance (including rewards), and pending withdrawals.
 ///
-/// @dev This contract includes admin functionalities (vault owner and operator) for fee management, adding new operators and registering validators in the deposit contract.
-/// It also includes a rebalancing mechanism done periodically by an oracle.
+/// @dev This contract includes admin functionalities (vault owner and operator) for fee management, adding new operators, and registering validators in the deposit contract.
+/// It also includes a rebalancing mechanism performed periodically by an oracle.
 ///
 /// @dev The contract implements reentrancy protection, pausable functionality and an upgradeable pattern using OpenZeppelin's upgradeable libraries,
-/// ensuring safety and flexibility for future enhancements.
+/// which ensures safety and flexibility for future enhancements.
 ///
 // solhint-disable max-states-count
 contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgradeable, PausableUpgradeable {
@@ -105,7 +105,6 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     error InvalidAddress(address account);
     error ValidatorAlreadyRegistered(bytes pubkey);
     error CallerNotOperator(address account);
-    error InvalidSignature();
 
     // limit of total deposits in wei.
     // This limits the total number of validators that can be registered.
@@ -117,7 +116,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     // total amount of inactive stake in wei on execution layer
     uint256 public totalUnstaked;
     // total amount of pending withdrawals in wei.
-    // This is the amount that is taken from staked balance and may not be immidiately available for withdrawal
+    // This is the amount that is taken from staked balance and may not be immediately available for withdrawal
     uint256 public totalPendingWithdrawal;
     // Total number of ever registered validators
     uint256 public totalValidatorsRegistered;
@@ -136,8 +135,8 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     mapping(address => bool) private _allowlisted;
     mapping(bytes => bool) private _registeredKeys;
 
-    /// @dev Total amount of pending withdrawals that can be claimed immediately.
-    /// Updated when the vault oracle rebalances the vault and when a user withdraw staked LYX via the `claim(...)` function.
+    /// @dev The total amount of pending withdrawals that can be claimed immediately.
+    /// Updated when the vault oracle rebalances the vault and when a user withdraws staked LYX via the `claim(...)` function.
     /// @return The total amount (in wei) of pending withdrawals that can be claimed immediately.
     uint256 public totalClaimable;
     address public operator;
@@ -434,7 +433,7 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     // The balance of the vault is the sum of:
     // - totalStaked + totalUnstaked: the total amount of stake on beacon chain and execution layer
     // - totalPendingWithdrawal: the total amount of pending withdrawals
-    // - totalClaimable: the total amount of pending withdrawals that can be claimed immidiately
+    // - totalClaimable: the total amount of pending withdrawals that can be claimed immediately
     // - totalFees: the total amount of fees available for withdrawal
     //
     // Rebalancing is not accounting for potential validator penalties. It is assumed that the penalties
@@ -526,8 +525,8 @@ contract StakingverseVault is IVault, ERC165, OwnableUnset, ReentrancyGuardUpgra
     /// @inheritdoc IVault
     /// @dev This function is used to transfer staked LYX from one address to another.
     /// It increases the staked balance of the recipient, and decreases the staked balance of the sender.
-    /// If the `to` is a smart contract that support the `IVaultStakeRecipient` interface, the `onVaultStakeReceived(...)`
-    /// function will be called on the recipient (with the three parameters `account`, `amount` and `data`) to notify it that some staked LYX tokens were transferred to its address.
+    /// If the `to` is a smart contract that supports the `IVaultStakeRecipient` interface, the `onVaultStakeReceived(...)`
+    /// function will be called on the recipient (with the three parameters `account`, `amount`, and `data`) to notify it that some staked LYX tokens were transferred to its address.
     function transferStake(address to, uint256 amount, bytes calldata data)
         external
         override

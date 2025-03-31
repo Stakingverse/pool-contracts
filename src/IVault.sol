@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.8.22;
 
 interface IVault {
@@ -25,16 +25,16 @@ interface IVault {
     function totalAssets() external view returns (uint256);
     function totalShares() external view returns (uint256);
 
-    /// @dev Total amount of active stake for the vault on the beacon chain.
+    /// @dev The total amount of active stake for the vault on the beacon chain.
     /// Increased by 32 LYX every time a new validator is registered for the vault.
     /// Updated when the vault oracle rebalances the vault.
     ///
     /// @return The total amount (in wei) of active stake for the vault on the beacon chain.
     function totalStaked() external view returns (uint256);
 
-    /// @dev Total amount of inactive stake for the vault on the execution layer.
-    /// Increased by the amount of LYX deposited by users to the vault.
-    /// Decreased when a user withdraws its staked LYX from the vault, or decreased by 32 LYX every time a new validator is registered for the vault.
+    /// @dev The total amount of inactive stake for the vault on the execution layer.
+    /// Increased by the amount of LYX deposited by users into the vault.
+    /// Decreased when a user withdraws their staked LYX from the vault or by 32 LYX every time a new validator is registered for the vault.
     /// Updated when the vault oracle rebalances the vault.
     ///
     /// @return The total amount (in wei) of inactive stake for the vault on the execution layer.
@@ -46,25 +46,25 @@ interface IVault {
     function totalFees() external view returns (uint256);
     function restricted() external view returns (bool);
 
-    /// @dev Get the total amount of staked LYX that was deposited by or for associated with `account`.
+    /// @dev Get the total amount of staked LYX deposited by or associated with `account`.
     /// @param account The address to query the staked balance for.
-    /// @return The amount of LYX staked by (or for) `account`.
+    /// @return The amount of LYX staked by or for `account`.
     function balanceOf(address account) external view returns (uint256);
 
-    /// @dev Get the number of shares held by `account` which correspond to the proportion of its stake inside the vault.
+    /// @dev Get the number of shares held by `account` which correspond to the proportion of their stake inside the vault.
     /// @param account The address to get the shares for.
     /// @return The number of shares held by `account`.
     function sharesOf(address account) external view returns (uint256);
     function pendingBalanceOf(address account) external view returns (uint256);
     function claimableBalanceOf(address account) external view returns (uint256);
 
-    /// @notice Stake a certain amount of LYX in the Stakingverse's vault for `beneficiary`.
+    /// @notice Stake a certain amount of LYX in the vault for `beneficiary`.
     /// @dev To stake LYX in the vault for `beneficiary`, send the amount of LYX native tokens while calling this function.
     /// @param beneficiary The address to stake LYX for in the vault.
     function deposit(address beneficiary) external payable;
 
-    /// @notice Withdraw a certain `amount` of LYX staked by `msg.sender` in the Stakingverse's vault and transfer this amount to `beneficiary`.
-    /// @dev The `amount` to withdraw will reduce the staked balance (and therefore reduce its shares) of the address that called this function (caller / `msg.sender`).
+    /// @notice Withdraw a certain `amount` of LYX staked by `msg.sender` in the vault and transfer this amount to `beneficiary`.
+    /// @dev The `amount` to withdraw will reduce the staked balance (and therefore reduce their shares) of the address that called this function (caller / `msg.sender`).
     /// @param amount The amount of staked LYX to withdraw.
     /// @param beneficiary The address to send the withdrawn amount to.
     function withdraw(uint256 amount, address beneficiary) external;
@@ -72,7 +72,7 @@ interface IVault {
     function claimFees(uint256 amount, address beneficiary) external;
 
     /// @notice Transfer `amount` of staked LYX from the caller to the `to` address with optional `data`.
-    ///
+    /// @dev The `amount` transferred will reduce the caller's staked balance and increase the staked balance of `to`, adjusting their respective shares accordingly.
     /// @param to The address to transfer the staked LYX to.
     /// @param amount The amount of staked LYX to transfer.
     /// @param data Optional data.
