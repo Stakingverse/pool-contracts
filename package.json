@@ -23,23 +23,24 @@
     "build:sizes": "forge build --sizes",
     "build:storage": "forge build --extra-output storageLayout",
     "build:ir": "forge build --extra-output ir",
-    "test": "forge test --no-match-contract ForkTest",
-    "test:debug": "forge test -vvv --no-match-contract ForkTest",
-    "test:invariant": "forge test --match-test invariant",
-    "test:invariant:debug": "forge test --match-test invariant --no-match-contract ForkTest -vvv",
-    "test:coverage": "forge coverage --report summary --no-match-test ^invariant --no-match-contract ForkTest",
-    "test:gas": "forge test --no-match-contract ForkTest --gas-report",
-    "test:fork": "forge test --fork-url https://rpc.mainnet.lukso.network --match-contract ForkTest"
+    "test": "forge test --no-match-contract '^Fork|LocalUpgradeTest'",
+    "test:debug": "forge test -vvv --no-match-contract '^Fork|LocalUpgradeTest'",
+    "test:invariant": "forge test --match-test ^invariant",
+    "test:invariant:debug": "forge test --match-test ^invariant --no-match-contract ^Fork -vvv",
+    "test:coverage": "forge coverage --report summary --no-match-test ^invariant --no-match-contract '^Fork|LocalUpgradeTest'",
+    "test:gas": "forge test --no-match-contract '^Fork|LocalUpgradeTest' --gas-report",
+    "test:upgrade": "FOUNDRY_OUT=build forge clean && forge test --match-contract LocalUpgradeTest",
+    "test:fork": "forge test --fork-url https://rpc.mainnet.lukso.network --match-contract ForkTest",
+    "test:upgrade:fork": "FOUNDRY_OUT=build forge clean && forge test --fork-url https://rpc.mainnet.lukso.network --match-contract ForkMainnetUpgradeTest"
   },
   "dependencies": {
     "@lukso/lsp7-contracts": "~0.16.3"
   },
   "devDependencies": {
-    "prettier-plugin-solidity": "^1.4.2",
     "@lukso/lsp1delegate-contracts": "^0.15.0",
     "@lukso/lsp6-contracts": "^0.15.0",
     "@lukso/universalprofile-contracts": "^0.15.0",
-    "solhint": "^5.0.5",
-    "@openzeppelin/contracts-v4.9.0": "npm:@openzeppelin/contracts@4.9.0"
+    "@openzeppelin/contracts-v4.9.0": "npm:@openzeppelin/contracts@4.9.0",
+    "solhint": "^5.0.5"
   }
 }

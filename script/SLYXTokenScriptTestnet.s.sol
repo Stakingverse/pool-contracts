@@ -13,10 +13,7 @@ import {SLYXToken} from "../src/SLYXToken.sol";
 
 import {IVault} from "../src/IVault.sol";
 
-import {
-    PROXY_ADMIN_TESTNET,
-    SLYX_TOKEN_PROXY_TESTNET
-} from "./TestnetConstants.sol";
+import {PROXY_ADMIN_TESTNET, SLYX_TOKEN_PROXY_TESTNET} from "./TestnetConstants.sol";
 
 contract DeploySLYXTokenImplementation is Script {
     function run() external {
@@ -24,12 +21,7 @@ contract DeploySLYXTokenImplementation is Script {
         vm.broadcast(deployerPrivateKey);
         SLYXToken slyxToken = new SLYXToken();
 
-        console.log(
-            string.concat(
-                "SLYXToken implementation deployed at ",
-                Strings.toHexString(address(slyxToken))
-            )
-        );
+        console.log(string.concat("SLYXToken implementation deployed at ", Strings.toHexString(address(slyxToken))));
     }
 }
 
@@ -39,9 +31,7 @@ contract DeploySLYXTokenProxy is Script {
 
         // Proxy deployment parameters for the SLYXToken
         address proxyAdmin = vm.envAddress("SLYX_PROXY_ADMIN_ADDRESS");
-        address sLyxTokenImplementation = vm.envAddress(
-            "SLYX_TOKEN_IMPLEMENTATION_ADDRESS"
-        );
+        address sLyxTokenImplementation = vm.envAddress("SLYX_TOKEN_IMPLEMENTATION_ADDRESS");
 
         // Parameters to initialize the SLYX Token contract
         address owner = vm.envAddress("SLYX_TOKEN_CONTRACT_OWNER_ADDRESS");
@@ -55,25 +45,12 @@ contract DeploySLYXTokenProxy is Script {
                 // proxy admin
                 proxyAdmin,
                 // `initialize(address,IVault)` calldata
-                abi.encodeCall(
-                    SLYXToken.initialize,
-                    (owner, IVault(linkedVault))
-                )
+                abi.encodeCall(SLYXToken.initialize, (owner, IVault(linkedVault)))
             )
         );
 
-        console.log(
-            string.concat(
-                "SLYXToken proxy deployed at ",
-                Strings.toHexString(proxy)
-            )
-        );
-        console.log(
-            string.concat(
-                "Linked to implementation at address ",
-                Strings.toHexString(sLyxTokenImplementation)
-            )
-        );
+        console.log(string.concat("SLYXToken proxy deployed at ", Strings.toHexString(proxy)));
+        console.log(string.concat("Linked to implementation at address ", Strings.toHexString(sLyxTokenImplementation)));
     }
 }
 
@@ -81,9 +58,7 @@ contract UpgradeSLYXToken is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-        address newSLYXTokenImplementation = vm.envAddress(
-            "NEW_SLYX_TOKEN_IMPLEMENTATION_ADDRESS"
-        );
+        address newSLYXTokenImplementation = vm.envAddress("NEW_SLYX_TOKEN_IMPLEMENTATION_ADDRESS");
 
         vm.startBroadcast(deployerPrivateKey);
         IProxy(SLYX_TOKEN_PROXY_TESTNET).upgradeTo(
@@ -94,8 +69,7 @@ contract UpgradeSLYXToken is Script {
 
         console.log(
             string.concat(
-                "SLYXToken proxy upgraded to implementation at ",
-                Strings.toHexString(newSLYXTokenImplementation)
+                "SLYXToken proxy upgraded to implementation at ", Strings.toHexString(newSLYXTokenImplementation)
             )
         );
     }
@@ -119,11 +93,6 @@ contract ChangeAdmin is Script {
         vm.broadcast(signerPrivateKey);
         IProxy(SLYX_TOKEN_PROXY_TESTNET).changeAdmin(newProxyAdmin);
 
-        console.log(
-            string.concat(
-                "SLYXToken proxy admin changed to ",
-                Strings.toHexString(newProxyAdmin)
-            )
-        );
+        console.log(string.concat("SLYXToken proxy admin changed to ", Strings.toHexString(newProxyAdmin)));
     }
 }

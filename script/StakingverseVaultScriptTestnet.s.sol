@@ -23,12 +23,7 @@ contract DeployVaultImplementation is Script {
         vm.broadcast(deployerPrivateKey);
         StakingverseVault vault = new StakingverseVault();
 
-        console.log(
-            string.concat(
-                "StakingverseVault implementation deployed at ",
-                Strings.toHexString(address(vault))
-            )
-        );
+        console.log(string.concat("StakingverseVault implementation deployed at ", Strings.toHexString(address(vault))));
     }
 }
 
@@ -38,9 +33,7 @@ contract DeployVaultProxy is Script {
 
         // Proxy deployment parameters for the vault
         address proxyAdmin = vm.envAddress("VAULT_PROXY_ADMIN_ADDRESS");
-        address vaultImplementation = vm.envAddress(
-            "VAULT_IMPLEMENTATION_ADDRESS"
-        );
+        address vaultImplementation = vm.envAddress("VAULT_IMPLEMENTATION_ADDRESS");
 
         // Parameters to initialize the vault
         address owner = vm.envAddress("VAULT_OWNER_ADDRESS");
@@ -54,25 +47,12 @@ contract DeployVaultProxy is Script {
                 // proxy admin
                 proxyAdmin,
                 // `initialize(address,address,IDepositContract)` calldata
-                abi.encodeCall(
-                    StakingverseVault.initialize,
-                    (owner, operator, DepositContract)
-                )
+                abi.encodeCall(StakingverseVault.initialize, (owner, operator, DepositContract))
             )
         );
 
-        console.log(
-            string.concat(
-                "StakingverseVault proxy deployed at ",
-                Strings.toHexString(proxy)
-            )
-        );
-        console.log(
-            string.concat(
-                "Linked to implementation at address ",
-                Strings.toHexString(vaultImplementation)
-            )
-        );
+        console.log(string.concat("StakingverseVault proxy deployed at ", Strings.toHexString(proxy)));
+        console.log(string.concat("Linked to implementation at address ", Strings.toHexString(vaultImplementation)));
     }
 }
 
@@ -94,12 +74,7 @@ contract ChangeAdmin is Script {
         vm.broadcast(signerAddress);
         IProxy(VAULT_PROXY_TESTNET).changeAdmin(newProxyAdmin);
 
-        console.log(
-            string.concat(
-                "Vault proxy admin changed to ",
-                Strings.toHexString(newProxyAdmin)
-            )
-        );
+        console.log(string.concat("Vault proxy admin changed to ", Strings.toHexString(newProxyAdmin)));
     }
 }
 
@@ -116,9 +91,7 @@ contract UpgradeVault is Script {
             )
         );
 
-        address newVaultImplementationAddress = vm.envAddress(
-            "NEW_VAULT_IMPLEMENTATION_ADDRESS"
-        );
+        address newVaultImplementationAddress = vm.envAddress("NEW_VAULT_IMPLEMENTATION_ADDRESS");
 
         vm.broadcast(signerPrivateKey);
         IProxy(VAULT_PROXY_TESTNET).upgradeTo(newVaultImplementationAddress);

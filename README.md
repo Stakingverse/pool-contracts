@@ -9,13 +9,13 @@ Repository for the Stakingverse contracts. This repository includes the followin
 - Stakingverse Vault (based on [Universal Page vault's implementation](https://github.com/Universal-Page/contracts/blob/main/src/pool/Vault.sol))
 - Liquid Staking Token (sLYX) based on the LUKSO LSP7 standard (linked to the Vault contract below deployed on LUKSO Mainnet).
 
-| Contract                                                        | Address on LUKSO Mainnet                                                                                                                       |
-| :-------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| Staking Vault Proxy                                             | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
-| Staking Vault `Vault.sol` Implementation (old)                  | [`0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`](https://explorer.lukso.network/address/0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4?tab=contract) |
-| Staking Vault `StakingverseVault.sol` Implementation (upgraded) | _To be deployed_                                                                                                                               |
-| SLYX Token Proxy                                                | [`0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d`](https://explorer.lukso.network/address/0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d?tab=contract) |
-| SLYX Token Implementation                                       | _To be deployed_                                                                                                                               |
+| Contract                                                                                                                                                                                    | Address on LUKSO Mainnet                                                                                                                       |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| Staking Vault Proxy                                                                                                                                                                         | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
+| Staking Vault `Vault.sol` Implementation <br/> (commit [`33d1619` on Universal.Page repository](https://github.com/Universal-Page/contracts/tree/33d1619a19162444c870b8a5a4bf42eb4532818c)) | [`0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`](https://explorer.lukso.network/address/0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4?tab=contract) |
+| Staking Vault `StakingverseVault.sol` Implementation (upgraded)                                                                                                                             | _To be deployed_                                                                                                                               |
+| SLYX Token Proxy                                                                                                                                                                            | [`0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d`](https://explorer.lukso.network/address/0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d?tab=contract) |
+| SLYX Token Implementation                                                                                                                                                                   | _To be deployed_                                                                                                                               |
 
 - [Stakingverse Contracts](#stakingverse-contracts)
   - [Installation](#installation)
@@ -34,11 +34,11 @@ Repository for the Stakingverse contracts. This repository includes the followin
 ## Installation
 
 ```bash
-# Install LUKSO and OpenZeppelin contracts dependencies
+# Install LUKSO LSP7 dependencies
 npm install
 
-# Install forge contracts testing library
-forge install https://github.com/foundry-rs/forge-std --no-commit --no-git
+# Install git submodule dependencies OZ contracts + forge library
+git submodule update --init --recursive
 ```
 
 ## Build
