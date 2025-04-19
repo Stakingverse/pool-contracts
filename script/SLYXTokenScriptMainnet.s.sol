@@ -12,7 +12,9 @@ import {
 import {SLYXToken} from "../src/SLYXToken.sol";
 
 import {IVault} from "../src/IVault.sol";
+import {IERC725Y} from "@erc725/smart-contracts/contracts/interfaces/IERC725Y.sol";
 
+import {_LSP4_METADATA_KEY} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 import {PROXY_ADMIN_MAINNET, SLYX_TOKEN_PROXY_MAINNET} from "./MainnetConstants.sol";
 
 contract DeploySLYXTokenImplementation is Script {
@@ -81,5 +83,15 @@ contract ChangeAdmin is Script {
         vm.stopBroadcast();
 
         console.log(string.concat("SLYXToken proxy admin changed to ", Strings.toHexString(newProxyAdmin)));
+    }
+}
+
+contract SetMetadata is Script {
+    function run() external {
+        bytes memory encodedMetadataValue = vm.envBytes("SLYX_TOKEN_METADATA_VALUE");
+
+        vm.startBroadcast();
+        IERC725Y(SLYX_TOKEN_PROXY_MAINNET).setData(_LSP4_METADATA_KEY, encodedMetadataValue);
+        vm.stopBroadcast();
     }
 }
