@@ -34,7 +34,8 @@
     "test:upgrade:fork": "FOUNDRY_OUT=build forge clean && forge test --fork-url https://rpc.mainnet.lukso.network --match-contract ForkMainnetUpgradeTest"
   },
   "dependencies": {
-    "@lukso/lsp7-contracts": "~0.16.3"
+    "@lukso/lsp7-contracts": "~0.16.4",
+    "@lukso/lsp17contractextension-contracts": "~0.16.3"
   },
   "devDependencies": {
     "@lukso/lsp1delegate-contracts": "^0.15.0",

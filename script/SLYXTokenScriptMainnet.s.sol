@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
 
 import {
     TransparentUpgradeableProxy,
@@ -12,7 +13,14 @@ import {
 import {SLYXToken} from "../src/SLYXToken.sol";
 
 import {IVault} from "../src/IVault.sol";
+import {IERC725Y} from "@erc725/smart-contracts/contracts/interfaces/IERC725Y.sol";
 
+import {_INTERFACEID_LSP0} from "@lukso/lsp0-contracts/contracts/LSP0Constants.sol";
+import {
+    _LSP4_METADATA_KEY,
+    _LSP4_CREATORS_ARRAY_KEY,
+    _LSP4_CREATORS_MAP_KEY_PREFIX
+} from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
 import {PROXY_ADMIN_MAINNET, SLYX_TOKEN_PROXY_MAINNET} from "./MainnetConstants.sol";
 
 contract DeploySLYXTokenImplementation is Script {
@@ -81,5 +89,38 @@ contract ChangeAdmin is Script {
         vm.stopBroadcast();
 
         console.log(string.concat("SLYXToken proxy admin changed to ", Strings.toHexString(newProxyAdmin)));
+    }
+}
+
+contract SetMetadata is Script {
+    function run() external {
+        bytes memory encodedMetadataValue = vm.envBytes("SLYX_TOKEN_METADATA_VALUE");
+
+        vm.startBroadcast();
+        IERC725Y(SLYX_TOKEN_PROXY_MAINNET).setData(_LSP4_METADATA_KEY, encodedMetadataValue);
+        vm.stopBroadcast();
+    }
+}
+
+contract SetCreator is Script {
+    function run() external {
+        // Stakingverse Universal Profile address
+        address creator = 0x900Be67854A47282211844BbdF5Cc0f332620513;
+
+        bytes32[] memory dataKeys = new bytes32[](3);
+        bytes[] memory dataValues = new bytes[](3);
+
+        dataKeys[0] = _LSP4_CREATORS_ARRAY_KEY;
+        dataValues[0] = abi.encodePacked(uint128(1));
+
+        dataKeys[1] = LSP2Utils.generateArrayElementKeyAtIndex(_LSP4_CREATORS_ARRAY_KEY, 0);
+        dataValues[1] = abi.encodePacked(creator);
+
+        dataKeys[2] = LSP2Utils.generateMappingKey(_LSP4_CREATORS_MAP_KEY_PREFIX, bytes20(creator));
+        dataValues[2] = abi.encodePacked(_INTERFACEID_LSP0, uint128(0));
+
+        vm.startBroadcast();
+        IERC725Y(SLYX_TOKEN_PROXY_MAINNET).setDataBatch(dataKeys, dataValues);
+        vm.stopBroadcast();
     }
 }
