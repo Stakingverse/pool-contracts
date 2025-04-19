@@ -126,7 +126,7 @@ NEW_VAULT_IMPLEMENTATION_ADDRESS="0x..."
 source .env
 ```
 
-3. Run these scripts to deploy the Vault proxy
+3. Run these scripts to upgrade the Vault proxy
 
 ```bash
 # [Simulation] Upgrade the Vault to a new implementation (dry run)
@@ -145,7 +145,7 @@ forge script --chain 4201 script/StakingverseVaultScriptTestnet.s.sol:UpgradeVau
 forge script --chain 4201 script/SLYXTokenScriptTestnet.s.sol:DeploySLYXTokenImplementation --rpc-url $LUKSO_TESTNET_RPC_URL -vvvv
 
 # [Transaction] Deploy the SLYX Token implementation + verify it
-forge scrip --chain 4201 script/SLYXTokenScriptTestnet.s.sol:DeploySLYXTokenImplementation --rpc-url $LUKSO_TESTNET_RPC_URL --broadcast --verify --verifier blockscout --verifier-url $BLOCKSCOUT_TESTNET_API_URL -vvvv
+forge script --chain 4201 script/SLYXTokenScriptTestnet.s.sol:DeploySLYXTokenImplementation --rpc-url $LUKSO_TESTNET_RPC_URL --broadcast --verify --verifier blockscout --verifier-url $BLOCKSCOUT_TESTNET_API_URL -vvvv
 ```
 
 ## Deploy the SLYX Token proxy contract
@@ -189,7 +189,7 @@ NEW_SLYX_TOKEN_IMPLEMENTATION_ADDRESS="0x..."
 source .env
 ```
 
-3. Run these scripts to deploy the Vault proxy
+3. Run these scripts to upgrade the sLYX token proxy
 
 ```bash
 # [Simulation] Upgrade the SLYX Token proxy to a new implementation (dry run)
