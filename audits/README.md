@@ -22,4 +22,4 @@ Previous audits for this Vault contract can be found in the [UniversalPage contr
 
 <br>
 
-- [Nethermind AI Agent Audit](nethermind-ai-agent-audit-report-stakingverse-pool-contracts.pdf) - Audit of both StakingverseVault.sol and Liquid Staking contracts by the BETA version of the [Nethermind](https://www.nethermind.io) Audit Agent. Check the overview of the findings [here](nethermind-findings.md).
+- [Nethermind AI Agent Audit](nethermind-ai-agent-audit-report-stakingverse-pool-contracts.pdf) - Audit of both StakingverseVault.sol and Liquid Staking contracts by the [Nethermind](https://www.nethermind.io) Audit Agent. Check the overview of the findings [here](nethermind-findings.md).
