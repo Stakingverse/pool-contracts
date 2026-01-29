@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 // Test helpers
-import {console} from "forge-std/Test.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {UniversalProfileTestHelpers, UniversalProfile} from "./base/UniversalProfileTestHelpers.t.sol";
 

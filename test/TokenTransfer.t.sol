@@ -3,8 +3,7 @@ pragma solidity ^0.8.13;
 
 // Testing
 import {
-    TransparentUpgradeableProxy,
-    ITransparentUpgradeableProxy as IProxy
+    TransparentUpgradeableProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {StakingverseVault} from "../src/StakingverseVault.sol";
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
@@ -19,7 +18,6 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 // Errors
 import {LSP7CannotSendWithAddressZero, LSP7AmountExceedsBalance} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
-import {InvalidRecipientForSLYXTokensTransfer} from "../src/SLYXToken.sol";
 
 /// @title Testing Token `transfer(address,address,uint256,bool,bytes)` function
 // ----------------------------------------------------------------------

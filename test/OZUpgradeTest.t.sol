@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/LegacyUpgrades.sol";
 import {IDepositContract} from "../src/IDepositContract.sol";
 
@@ -13,10 +13,6 @@ import {
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import {Vault as VaultV1} from "../src/Vault.sol";
-import {StakingverseVault} from "../src/StakingverseVault.sol";
-
-// Constants
-import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET} from "../script/MainnetConstants.sol";
 
 /// @dev Test to ensure that the upgrade is safe and the new implementation contract is valid, using OpenZeppelin Foundry upgrades library
 /// This ensures that the new implementation contract is safe to upgrade to and that the storage layout is compatible with the proxy linked to the current implementation
