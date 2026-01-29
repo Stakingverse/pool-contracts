@@ -27,7 +27,7 @@
     "test:debug": "forge test -vvv --no-match-contract '^Fork|LocalUpgradeTest'",
     "test:invariant": "forge test --match-test ^invariant",
     "test:invariant:debug": "forge test --match-test ^invariant --no-match-contract ^Fork -vvv",
-    "test:coverage": "forge coverage --report summary --no-match-test ^invariant --no-match-contract '^Fork|LocalUpgradeTest'",
+    "test:coverage": "forge coverage --report summary --no-match-test ^invariant --no-match-contract '^Fork|LocalUpgradeTest' --no-match-coverage 'test/mocks|script/|src/Vault.sol'",
     "test:gas": "forge test --no-match-contract '^Fork|LocalUpgradeTest' --gas-report",
     "test:upgrade": "FOUNDRY_OUT=build forge clean && forge test --match-contract LocalUpgradeTest",
     "test:fork": "forge test --fork-url https://rpc.mainnet.lukso.network --match-contract ForkTest",
