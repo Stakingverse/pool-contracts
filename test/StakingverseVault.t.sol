@@ -4,7 +4,6 @@ pragma solidity =0.8.22;
 import {Test} from "forge-std/Test.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {OwnableCallerNotTheOwner} from "@erc725/smart-contracts/contracts/errors.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {StakingverseVault} from "../../src/StakingverseVault.sol";
 import {IDepositContract} from "../../src/IDepositContract.sol";
 import {MockDepositContract} from "./mocks/MockDepositContract.sol";

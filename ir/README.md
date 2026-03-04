@@ -7,7 +7,7 @@
 > - optimizer = true
 > - optimizer-runs = 1_000
 
-This folder contains the intermediate representation of the `SLYXToken` and `StakingversVault` contracts in the form of Yul code.
+The following are instructions to generate the intermediate representation of the `SLYXToken` and `StakingversVault` contracts in the form of Yul code.
 
 The yul code was generated without any IR optimisations, by simply running the commands below.
 
@@ -33,6 +33,6 @@ solc ./src/SLYXToken.sol \
     forge-std/=lib/forge-std/src/ \
     solidity-bytes-utils/=node_modules/solidity-bytes-utils/ \
     --ir -o ./build-via-ir
-
-You will obtain a folder with all the generated IR representations (including the dependencies).
 ```
+
+You will obtain a folder `build-via-ir/` with all the generated IR representations (including the dependencies).

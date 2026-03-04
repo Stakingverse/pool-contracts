@@ -4,12 +4,6 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {Upgrades, Options} from "openzeppelin-foundry-upgrades/LegacyUpgrades.sol";
 
-// Contracts to test
-import {
-    TransparentUpgradeableProxy,
-    ITransparentUpgradeableProxy as IProxy
-} from "@openzeppelin/contracts-v4.9.0/proxy/transparent/TransparentUpgradeableProxy.sol";
-
 // Constants
 import {PROXY_ADMIN_MAINNET, VAULT_PROXY_MAINNET} from "../../script/MainnetConstants.sol";
 

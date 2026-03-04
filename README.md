@@ -2,7 +2,7 @@
 
 ![cover image](./images/cover-image.png)
 
-[![Build + Test pass](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml/badge.svg)](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml) [![Code coverage](https://img.shields.io/badge/Code_Coverage-87%25-green?logo=codecrafters&logoColor=white)](./README.md#code-coverage) [![Discord](https://img.shields.io/badge/-Discord-darkblue?logo=discord&logoColor=white)](https://discord.com/invite/AE3KdFhpAQ) [![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?logo=telegram&logoColor=white)](https://docs.stakingverse.io/) [![Docs](https://img.shields.io/badge/-Docs-darkgreen?logo=readme&logoColor=white)](https://docs.stakingverse.io/)
+[![Build + Test pass](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml/badge.svg)](https://github.com/Stakingverse/pool-contracts/actions/workflows/build-test.yml) [![Code coverage](https://img.shields.io/badge/Code_Coverage-89%25-green?logo=codecrafters&logoColor=white)](./README.md#code-coverage) [![Discord](https://img.shields.io/badge/-Discord-darkblue?logo=discord&logoColor=white)](https://discord.com/invite/AE3KdFhpAQ) [![Telegram](https://img.shields.io/badge/-Telegram-26A5E4?logo=telegram&logoColor=white)](https://docs.stakingverse.io/) [![Docs](https://img.shields.io/badge/-Docs-darkgreen?logo=readme&logoColor=white)](https://docs.stakingverse.io/)
 
 Repository for the Stakingverse contracts. This repository includes the following contracts:
 
@@ -13,7 +13,7 @@ Repository for the Stakingverse contracts. This repository includes the followin
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------- |
 | Staking Vault Proxy                                                                                                                                                                         | [`0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04`](https://explorer.lukso.network/address/0x9F49a95b0c3c9e2A6c77a16C177928294c0F6F04?tab=contract) |
 | Staking Vault `Vault.sol` Implementation <br/> (commit [`33d1619` on Universal.Page repository](https://github.com/Universal-Page/contracts/tree/33d1619a19162444c870b8a5a4bf42eb4532818c)) | [`0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4`](https://explorer.lukso.network/address/0x2Cb02ef26aDDAB15686ed634d70699ab64F195f4?tab=contract) |
-| Staking Vault `StakingverseVault.sol` Implementation (upgraded)                                                                                                                             | [`0x1711b2e1b64F38ca33E51b717CFd27ACD1bd2E2D`](https://explorer.lukso.network/address/0x1711b2e1b64F38ca33E51b717CFd27ACD1bd2E2D?tab=contract) |                                                                                                                              |
+| Staking Vault `StakingverseVault.sol` Implementation (upgraded)                                                                                                                             | [`0x1711b2e1b64F38ca33E51b717CFd27ACD1bd2E2D`](https://explorer.lukso.network/address/0x1711b2e1b64F38ca33E51b717CFd27ACD1bd2E2D?tab=contract) |
 | SLYX Token Proxy                                                                                                                                                                            | [`0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d`](https://explorer.lukso.network/address/0x8a3982f0a7d154d11a5f43eec7f50e52ebbc8f7d?tab=contract) |
 | SLYX Token Implementation                                                                                                                                                                   | [`0x08b28405A11348745A3187De2A29C730C53EB29B`](https://explorer.lukso.network/address/0x08b28405A11348745A3187De2A29C730C53EB29B?tab=contract) |
 
@@ -99,15 +99,13 @@ Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 196.78s (332.05s C
 
 Ran 11 test suites in 196.79s (520.99s CPU time): 95 tests passed, 0 failed, 0 skipped (95 total tests)
 
-| File                                          | % Lines          | % Statements     | % Branches     | % Funcs        |
-| --------------------------------------------- | ---------------- | ---------------- | -------------- | -------------- |
-| src/SLYXToken.sol                             | 90.62% (29/32)   | 92.16% (47/51)   | 80.00% (4/5)   | 91.67% (11/12) |
-| src/StakingverseVault.sol                     | 83.84% (166/198) | 83.95% (204/243) | 50.00% (23/46) | 82.86% (29/35) |
-| test/base/SLYXTokenBaseTest.t.sol             | 100.00% (40/40)  | 100.00% (45/45)  | 100.00% (0/0)  | 100.00% (5/5)  |
-| test/base/UniversalProfileTestHelpers.t.sol   | 100.00% (21/21)  | 100.00% (26/26)  | 100.00% (0/0)  | 100.00% (5/5)  |
-| test/mocks/MockContractWithLSP1Reentrancy.sol | 87.50% (7/8)     | 90.91% (10/11)   | 50.00% (1/2)   | 100.00% (5/5)  |
-| test/mocks/MockDepositContract.sol            | 33.33% (1/3)     | 25.00% (1/4)     | 100.00% (0/0)  | 33.33% (1/3)   |
-| Total                                         | 87.42% (264/302) | 87.63% (333/380) | 52.83% (28/53) | 86.15% (56/65) |
+| File                                        | % Lines          | % Statements     | % Branches     | % Funcs         |
+| ------------------------------------------- | ---------------- | ---------------- | -------------- | --------------- |
+| src/SLYXToken.sol                           | 97.62% (41/42)   | 97.96% (48/49)   | 83.33% (5/6)   | 100.00% (12/12) |
+| src/StakingverseVault.sol                   | 83.54% (198/237) | 83.40% (206/247) | 48.94% (23/47) | 83.33% (30/36)  |
+| test/base/SLYXTokenBaseTest.t.sol           | 100.00% (45/45)  | 100.00% (45/45)  | 100.00% (0/0)  | 100.00% (5/5)   |
+| test/base/UniversalProfileTestHelpers.t.sol | 100.00% (26/26)  | 100.00% (26/26)  | 100.00% (0/0)  | 100.00% (5/5)   |
+| Total                                       | 88.57% (310/350) | 88.56% (325/367) | 52.83% (28/53) | 89.66% (52/58)  |
 
 ### Contract sizes
 

@@ -8,7 +8,6 @@ import {Test, console} from "forge-std/Test.sol";
 import {StakingverseVault} from "../../src/StakingverseVault.sol";
 import {IDepositContract} from "../../src/IDepositContract.sol";
 import {
-    TransparentUpgradeableProxy,
     ITransparentUpgradeableProxy as IProxy
 } from "@openzeppelin/contracts-v4.9.0/proxy/transparent/TransparentUpgradeableProxy.sol";
 

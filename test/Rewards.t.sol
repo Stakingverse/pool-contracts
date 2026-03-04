@@ -9,9 +9,6 @@ import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 // Helpers
 import {IVault} from "../src/StakingverseVault.sol";
 
-// Mocks
-import {MockDepositContract} from "./mocks/MockDepositContract.sol";
-
 /// @title Testing sLYX / LYX rate after accrued rewards
 // -----------------------------------------------------
 contract Rewards is SLYXTokenBaseTest {

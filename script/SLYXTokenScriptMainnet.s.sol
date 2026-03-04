@@ -21,7 +21,7 @@ import {
     _LSP4_CREATORS_ARRAY_KEY,
     _LSP4_CREATORS_MAP_KEY_PREFIX
 } from "@lukso/lsp4-contracts/contracts/LSP4Constants.sol";
-import {PROXY_ADMIN_MAINNET, SLYX_TOKEN_PROXY_MAINNET} from "./MainnetConstants.sol";
+import {SLYX_TOKEN_PROXY_MAINNET} from "./MainnetConstants.sol";
 
 contract DeploySLYXTokenImplementation is Script {
     function run() external {

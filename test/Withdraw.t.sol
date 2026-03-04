@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 import {StakingverseVault} from "../src/StakingverseVault.sol";
-import {LSP7TokenContractCannotHoldValue} from "@lukso/lsp7-contracts/contracts/LSP7Errors.sol";
 
 /// @title Testing Withdraw related to burning
 // --------------------------------------

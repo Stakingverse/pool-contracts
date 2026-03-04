@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {ITransparentUpgradeableProxy as IProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ITransparentUpgradeableProxy as IProxy} from
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-
 // Testing
 import {SLYXTokenBaseTest} from "./base/SLYXTokenBaseTest.t.sol";
 

@@ -11,7 +11,6 @@ import {LSP1UniversalReceiverDelegateUP as LSP1Delegate} from
 
 // libraries
 import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
-import {LSP6Utils} from "@lukso/lsp6-contracts/contracts/LSP6Utils.sol";
 
 // constants
 import {_LSP1_UNIVERSAL_RECEIVER_DELEGATE_KEY} from "@lukso/lsp1-contracts/contracts/LSP1Constants.sol";

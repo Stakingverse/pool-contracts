@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 // Test helpers
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 // Testing + Setups
-import {IVault, StakingverseVault} from "../../src/StakingverseVault.sol";
+import {StakingverseVault} from "../../src/StakingverseVault.sol";
 import {MockDepositContract} from "../mocks/MockDepositContract.sol";
 import {
     TransparentUpgradeableProxy,
@@ -13,11 +13,7 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 // Libraries
-import {LSP2Utils} from "@lukso/lsp2-contracts/contracts/LSP2Utils.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-// Constants
-import {_LSP17_EXTENSION_PREFIX} from "@lukso/lsp17contractextension-contracts/contracts/LSP17Constants.sol";
 
 // Contracts to test
 import {SLYXToken} from "../../src/SLYXToken.sol";
